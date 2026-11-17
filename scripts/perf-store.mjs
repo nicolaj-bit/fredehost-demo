@@ -46,7 +46,7 @@ async function measure(query, clickModal) {
   await page.waitForTimeout(500);
   const t = await page.evaluate(() => {
     const n = performance.getEntriesByType('navigation')[0];
-    return { ttfb: n.responseStart, dcl: n.domContentLoadedEventEnd, load: n.loadEventEnd, lcp: window.__lcp, html: n.encodedBodySize, hasModal: !!document.querySelector('[data-engraver]') };
+    return { ttfb: n.responseStart, dcl: n.domContentLoadedEventEnd, load: n.loadEventEnd, lcp: window.__lcp, html: n.encodedBodySize, hasModal: !!document.querySelector('[data-engraver]'), wood: document.querySelector('[data-engraver]')?.dataset.wood };
   });
   const heavy = reqs.filter((r) => /three\.module|engraver\.js/.test(r.url)).length;
   const r = { ...t, requests: reqs.length, bytes: [...bytes.values()].reduce((a, b) => a + b, 0), heavy };
@@ -65,7 +65,7 @@ const all = Object.fromEntries(Object.keys(VARIANTS).map((k) => [k, []]));
 for (let i = 0; i < RUNS; i++) for (const [name, q] of Object.entries(VARIANTS)) all[name].push(await measure(q, false));
 for (const name of Object.keys(VARIANTS)) {
   const runs = all[name];
-  console.log(`\n${name} (median af ${RUNS}, mobil, 4G) – modal i HTML: ${runs[0].hasModal}`);
+  console.log(`\n${name} (median af ${RUNS}, mobil, 4G) – modal i HTML: ${runs[0].hasModal}, træ i 3D: ${runs[0].wood ?? '–'}`);
   for (const k of ['ttfb', 'dcl', 'lcp', 'load']) console.log(`  ${k.toUpperCase().padEnd(5)} ${Math.round(median(runs.map((x) => x[k])))} ms`);
   console.log(`  LCP efter svar fra server ${Math.round(median(runs.map((x) => x.lcp - x.ttfb)))} ms`);
   const q = (arr, f) => { const s = [...arr].sort((x, y) => x - y); return Math.round(s[Math.floor((s.length - 1) * f)]); };
