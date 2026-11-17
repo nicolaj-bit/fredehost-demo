@@ -8,7 +8,8 @@
   Bægeret består af tolv trædele: kroppen er en tolvkantet, keglestubformet
   krop med flade sider og synlige limfuger. Foden er drejet i ét stykke.
   Træet er olieret eg med årer, der løber på langs af hver stav, og
-  marvstråler. Bunden er endetræ med årringe fra to sammenlimede emner.
+  marvstråler. TOVE har skiftevis staver af wenge og eg. Foden er eg på
+  begge. Bunden er endetræ med årringe fra to sammenlimede emner.
   Graveringen er et lasermærke: brændt mørkt, men uden fordybning, så
   træets struktur stadig anes igennem.
 */
@@ -63,19 +64,24 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
 // Olieret eg: varm, gylden brun. Lysere tidligved, mørkere senved.
 const OAK = [146, 100, 58];
+// Olieret wenge: næsten sort brun med lysere, smalle striber på langs.
+const WENGE = [46, 30, 22];
 
 /* ---------- teksturer ---------- */
 
 // Tolv staver side om side. Hver stav har sin egen tone og årestruktur, og
 // limfugen tegnes som en tynd mørk linje i kanten, så samlingerne ses.
-function staveTexture() {
+function staveTexture(wood) {
   const W = 1536, Hh = 1024, sw = W / STAVES;
   const c = canvas(W, Hh), ctx = c.getContext('2d');
   const img = ctx.createImageData(W, Hh), d = img.data;
   const r = rng(1995);
   const staves = [];
   for (let i = 0; i < STAVES; i++) {
+    const wenge = wood === 'wenge-eg' && i % 2 === 1;
     staves.push({
+      wenge,
+      base: wenge ? WENGE : OAK,
       tone: 0.9 + r() * 0.17,
       warm: r() * 0.08 - 0.04,
       quarter: i % 3 !== 1,          // to ud af tre er kvartersavet, resten har «katedral»-årer
@@ -93,6 +99,23 @@ function staveTexture() {
       const lx = x - si * sw;               // px inde i staven
       const u = lx / sw;
       let g;
+      if (s.wenge) {
+        // wenge: tætte, lige striber med lidt bølge; ingen marvstråler
+        g = lx * 1.9 + s.slant * y + s.wave(y / 160 + s.off) * 4;
+        const f = (g / 7 + s.off) % 1;
+        let shade = f < 0.42 ? 1.18 + 0.18 * Math.sin(f * 7.4) : 0.72 - 0.12 * f;
+        if (hash2(Math.floor(g), Math.floor(y / 9) + si * 999) > 0.9) shade *= 0.6;   // lange porer
+        shade += (hash2(x, y) - 0.5) * 0.12;
+        const edge = Math.min(lx, sw - 1 - lx);
+        if (edge < 1.6) shade *= 0.6;
+        shade *= s.tone;
+        const i4 = (y * W + x) * 4;
+        d[i4] = clamp(WENGE[0] * shade, 0, 255);
+        d[i4 + 1] = clamp(WENGE[1] * shade, 0, 255);
+        d[i4 + 2] = clamp(WENGE[2] * shade, 0, 255);
+        d[i4 + 3] = 255;
+        continue;
+      }
       if (s.quarter) {
         // lige, parallelle årer på langs, let bølgede
         g = lx + s.slant * y + s.wave(y / 140 + s.off) * 3.5 + s.wave(lx / 9 + s.off * 3) * 2.2;
@@ -167,11 +190,13 @@ function topTexture(staves, angleOffset) {
       const sec = a / (Math.PI * 2 / STAVES);
       const si = Math.floor(sec) % STAVES, fs = sec - Math.floor(sec);
       let shade;
+      let base = OAK;
       if (rho > inner) {
         const s = staves[si];
+        base = s.base;
         const ring = (rho * 60 + fs * 4) + s.off;
         const f = ring - Math.floor(ring);
-        shade = (0.86 - 0.12 * f) * s.tone;
+        shade = (0.86 - 0.12 * f) * s.tone * (s.wenge ? 1.2 : 1);
         if (hash2(x, y) > 0.86) shade -= 0.1;          // endetræets porer
         const edgePx = Math.min(fs, 1 - fs) * rho * S * Math.PI / STAVES;
         if (edgePx < 1.3) shade *= 0.45;               // limfuge mellem stavene
@@ -185,9 +210,9 @@ function topTexture(staves, angleOffset) {
       if (Math.abs(rho - inner) < 0.006) shade *= 0.5;   // fugen rundt om skiven
       shade += (hash2(x + 7, y) - 0.5) * 0.05;
       const i4 = (y * S + x) * 4;
-      d[i4] = clamp(OAK[0] * shade, 0, 255);
-      d[i4 + 1] = clamp(OAK[1] * shade, 0, 255);
-      d[i4 + 2] = clamp(OAK[2] * shade, 0, 255);
+      d[i4] = clamp(base[0] * shade, 0, 255);
+      d[i4 + 1] = clamp(base[1] * shade, 0, 255);
+      d[i4 + 2] = clamp(base[2] * shade, 0, 255);
       d[i4 + 3] = 255;
     }
   }
@@ -387,7 +412,7 @@ function studioEnvironment(THREE, renderer) {
 
 /* ---------- montering ---------- */
 
-export async function mount(canvasEl, threeSrc) {
+export async function mount(canvasEl, threeSrc, opts = {}) {
   const THREE = await import(threeSrc);
 
   let renderer;
@@ -427,7 +452,7 @@ export async function mount(canvasEl, threeSrc) {
   });
 
   const angleOffset = Math.PI / STAVES;   // en flade lige mod beskueren
-  const { canvas: staveCanvas, staves } = staveTexture();
+  const { canvas: staveCanvas, staves } = staveTexture(opts.wood || 'eg');
   const model = new THREE.Group();
   model.add(new THREE.Mesh(staveGeometry(THREE, angleOffset), oiled(tex(staveCanvas))));
   model.add(new THREE.Mesh(topGeometry(THREE, angleOffset), oiled(tex(topTexture(staves, angleOffset)))));

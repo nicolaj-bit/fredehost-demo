@@ -33,7 +33,7 @@
       <div class="prose product__desc">{{ product.description }}</div>
 
       {%- if section.settings.show_engraver -%}
-        {%- render 'engraver-modal', product: product, material: material -%}
+        {%- render 'engraver-modal', product: product, material: material, wood: section.settings.wood -%}
       {%- endif -%}
 
       <ul class="product__facts">
@@ -82,6 +82,7 @@
   "settings": [
     { "type": "text", "id": "material", "label": "Materiale (bruges hvis metafelt mangler)", "default": "Olieret eg" },
     { "type": "text", "id": "subtitle", "label": "Undertitel", "default": "Raflebæger" },
+    { "type": "select", "id": "wood", "label": "Træ i 3D-visningen", "default": "eg", "options": [ { "value": "eg", "label": "Eg (ANNY)" }, { "value": "wenge-eg", "label": "Wenge og eg (TOVE)" } ] },
     { "type": "checkbox", "id": "show_engraver", "label": "Vis gravering med 3D", "default": true },
     { "type": "text", "id": "offer", "label": "Tilbud" },
     { "type": "text", "id": "story_eyebrow", "label": "Fortælling: overlinje" },

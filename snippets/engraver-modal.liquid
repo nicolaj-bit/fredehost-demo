@@ -25,6 +25,7 @@
 </div>
 
 <dialog class="engraver" aria-labelledby="engraver-title" data-engraver
+  data-wood="{{ wood | default: 'eg' }}"
   data-engraver-src="{{ 'engraver.js' | asset_url }}"
   data-three-src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.min.js">
   <div class="engraver__stage" data-stage>
@@ -104,7 +105,7 @@
     function load() {
       if (loading) return loading;
       loading = import(root.dataset.engraverSrc)
-        .then(function (m) { return m.mount(root.querySelector('[data-canvas]'), root.dataset.threeSrc); })
+        .then(function (m) { return m.mount(root.querySelector('[data-canvas]'), root.dataset.threeSrc, { wood: root.dataset.wood }); })
         .then(function (v) { view = v; root.classList.add('is-ready'); render(); })
         .catch(function (err) {
           console.error(err);

@@ -23,7 +23,13 @@ async function session() {
 
 async function measure(query, clickModal) {
   const { ctx, page } = await session();
-  const url = `${BASE}/products/anny?preview_theme_id=${THEME}${query}`;
+  // Valgfrit: lever three.js lokalt, hvis jsDelivr er blokeret i testmiljøet (samme fil, r160).
+  if (process.env.THREE_FILE) {
+    const body = (await import('node:fs')).readFileSync(process.env.THREE_FILE);
+    await ctx.route('https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.min.js', (r) =>
+      r.fulfill({ status: 200, body, headers: { 'content-type': 'application/javascript', 'access-control-allow-origin': '*' } }));
+  }
+  const url = `${BASE}/products/tove?preview_theme_id=${THEME}${query}`;
   await page.goto(url, { waitUntil: 'load' });              // varmer preview-cookie op
   const cdp = await ctx.newCDPSession(page);
   await cdp.send('Network.enable');
@@ -54,11 +60,17 @@ async function measure(query, clickModal) {
   return r;
 }
 
-for (const [name, q] of Object.entries(VARIANTS)) {
-  const runs = [];
-  for (let i = 0; i < RUNS; i++) runs.push(await measure(q, false));
+// Varianterne måles på skift, så svingninger i Shopifys svartid rammer begge ens.
+const all = Object.fromEntries(Object.keys(VARIANTS).map((k) => [k, []]));
+for (let i = 0; i < RUNS; i++) for (const [name, q] of Object.entries(VARIANTS)) all[name].push(await measure(q, false));
+for (const name of Object.keys(VARIANTS)) {
+  const runs = all[name];
   console.log(`\n${name} (median af ${RUNS}, mobil, 4G) – modal i HTML: ${runs[0].hasModal}`);
   for (const k of ['ttfb', 'dcl', 'lcp', 'load']) console.log(`  ${k.toUpperCase().padEnd(5)} ${Math.round(median(runs.map((x) => x[k])))} ms`);
+  console.log(`  LCP efter svar fra server ${Math.round(median(runs.map((x) => x.lcp - x.ttfb)))} ms`);
+  const q = (arr, f) => { const s = [...arr].sort((x, y) => x - y); return Math.round(s[Math.floor((s.length - 1) * f)]); };
+  const l = runs.map((x) => x.lcp);
+  console.log(`  LCP spredning: hurtigste ${q(l, 0)} · 25 % ${q(l, 0.25)} · 75 % ${q(l, 0.75)} · langsomste ${q(l, 1)} ms`);
   console.log(`  HTML  ${(median(runs.map((x) => x.html)) / 1024).toFixed(1)} kB (komprimeret)`);
   console.log(`  I alt ${(median(runs.map((x) => x.bytes)) / 1024).toFixed(0)} kB i ${median(runs.map((x) => x.requests))} forespørgsler`);
   console.log(`  three.js/engraver.js hentet før klik: ${Math.max(...runs.map((x) => x.heavy))}`);

@@ -6,33 +6,80 @@
         "eyebrow": "Dansk design siden 1995",
         "heading": "En ægte dansk original",
         "text": "Raflebægeret i træ er designet af Frede Høst og produceret i Danmark. Sat sammen af tolv trædele, foret med filt og med en bund, der holder på terningerne.",
-        "button": "Se ANNY i olieret eg",
-        "url": "/products/anny",
+        "button": "Se TOVE i wenge og eg",
+        "url": "/products/tove",
         "asset": "front",
-        "alt": "Raflebæger i træ på fod, stående på et ternet klæde"
+        "alt": "TOVE raflebæger i olieret wenge og eg på et ternet klæde",
+        "image": "shopify://shop_images/IMG_5638.jpg"
       }
     },
     "statement": {
       "type": "fh-statement",
-      "settings": { "text": "Et afdæmpet, kontrolleret kast – og en form, der ligger, som den skal, i hånden." }
+      "settings": {
+        "text": "Et afdæmpet, kontrolleret kast – og en form, der ligger, som den skal, i hånden."
+      }
     },
     "duo": {
       "type": "fh-duo",
       "blocks": {
-        "a": { "type": "image", "settings": { "asset": "top", "alt": "Bægeret set oppefra, hvor trædelene ses i kanten", "caption": "Tolv trædele, samlet til én form." } },
-        "b": { "type": "image", "settings": { "asset": "above", "alt": "Bægeret set skråt oppefra", "caption": "Bundstykket kan tages af og holder på terningerne." } }
+        "a": {
+          "type": "image",
+          "settings": {
+            "asset": "top",
+            "alt": "Bægeret set oppefra, hvor trædelene ses i kanten",
+            "caption": "Tolv trædele, samlet til én form.",
+            "image": "shopify://shop_images/IMG_5620.jpg"
+          }
+        },
+        "b": {
+          "type": "image",
+          "settings": {
+            "asset": "above",
+            "alt": "Bægeret set skråt oppefra",
+            "caption": "Bundstykket kan tages af og holder på terningerne.",
+            "image": "shopify://shop_images/IMG_5629.jpg"
+          }
+        }
       },
-      "block_order": ["a", "b"]
+      "block_order": [
+        "a",
+        "b"
+      ]
     },
     "features": {
       "type": "fh-features",
-      "settings": { "eyebrow": "Raflebægeret", "heading": "Tænkt igennem i alle tolv dele" },
-      "blocks": {
-        "f1": { "type": "feature", "settings": { "title": "Formet til hånden", "text": "En tidløs silhuet af tolv sammenføjede trædele, formet så den hviler naturligt i hånden." } },
-        "f2": { "type": "feature", "settings": { "title": "Foret med filt", "text": "Indersiden er foret med tæt, mørk filt. Den tager lyden af terningerne og efterlader en blød, dæmpet rumlen." } },
-        "f3": { "type": "feature", "settings": { "title": "Todelt bund", "text": "Et elegant bundstykke holder på terningerne, så de bliver på bordet og ikke ender på gulvet." } }
+      "settings": {
+        "eyebrow": "Raflebægeret",
+        "heading": "Tænkt igennem i alle tolv dele"
       },
-      "block_order": ["f1", "f2", "f3"]
+      "blocks": {
+        "f1": {
+          "type": "feature",
+          "settings": {
+            "title": "Formet til hånden",
+            "text": "En tidløs silhuet af tolv sammenføjede trædele, formet så den hviler naturligt i hånden."
+          }
+        },
+        "f2": {
+          "type": "feature",
+          "settings": {
+            "title": "Foret med filt",
+            "text": "Indersiden er foret med tæt, mørk filt. Den tager lyden af terningerne og efterlader en blød, dæmpet rumlen."
+          }
+        },
+        "f3": {
+          "type": "feature",
+          "settings": {
+            "title": "Todelt bund",
+            "text": "Et elegant bundstykke holder på terningerne, så de bliver på bordet og ikke ender på gulvet."
+          }
+        }
+      },
+      "block_order": [
+        "f1",
+        "f2",
+        "f3"
+      ]
     },
     "collection": {
       "type": "fh-collection",
@@ -42,13 +89,55 @@
         "text": "Alle raflebægre er dansk design siden 1995 og leveres med seks terninger i en bomuldspose."
       },
       "blocks": {
-        "anny": { "type": "cup", "settings": { "name": "ANNY", "wood": "Olieret eg", "price": "899 kr.", "url": "/products/anny" } },
-        "erik": { "type": "cup", "settings": { "name": "ERIK", "wood": "Olieret mahogni", "price": "" } },
-        "tove": { "type": "cup", "settings": { "name": "TOVE", "wood": "Olieret wenge og eg", "price": "999 kr." } },
-        "knud": { "type": "cup", "settings": { "name": "KNUD", "wood": "Olieret valnød", "price": "1.099 kr." } },
-        "poul": { "type": "cup", "settings": { "name": "POUL", "wood": "Hvidolieret eg", "price": "" } }
+        "anny": {
+          "type": "cup",
+          "settings": {
+            "name": "ANNY",
+            "wood": "Olieret eg",
+            "price": "899 kr."
+          }
+        },
+        "erik": {
+          "type": "cup",
+          "settings": {
+            "name": "ERIK",
+            "wood": "Olieret mahogni",
+            "price": ""
+          }
+        },
+        "tove": {
+          "type": "cup",
+          "settings": {
+            "name": "TOVE",
+            "wood": "Olieret wenge og eg",
+            "price": "999 kr.",
+            "url": "/products/tove"
+          }
+        },
+        "knud": {
+          "type": "cup",
+          "settings": {
+            "name": "KNUD",
+            "wood": "Olieret valnød",
+            "price": "1.099 kr."
+          }
+        },
+        "poul": {
+          "type": "cup",
+          "settings": {
+            "name": "POUL",
+            "wood": "Hvidolieret eg",
+            "price": ""
+          }
+        }
       },
-      "block_order": ["anny", "erik", "tove", "knud", "poul"]
+      "block_order": [
+        "anny",
+        "erik",
+        "tove",
+        "knud",
+        "poul"
+      ]
     },
     "engraving": {
       "type": "fh-split",
@@ -56,11 +145,12 @@
         "eyebrow": "Gravering",
         "heading": "Jeres ord i bunden",
         "text": "<p>Tilføj en personlig besked, en dato eller et navn, der vækker minder om en særlig dag – eller om aftenerne, hvor I var samlet om bordet.</p><p>Graveringen brændes ind i bunden med laser, så træets struktur stadig anes gennem teksten. Du ser den i 3D, før du bestiller.</p>",
-        "button": "Prøv en gravering på ANNY",
-        "url": "/products/anny",
+        "button": "Prøv en gravering på TOVE",
+        "url": "/products/tove",
         "asset": "bottom",
         "alt": "Bunden af bægeret med Frede Høsts mærke brændt ind i egetræet",
-        "reverse": true
+        "reverse": true,
+        "image": "shopify://shop_images/IMG_5645.jpg"
       }
     },
     "story": {
@@ -71,9 +161,18 @@
         "heading": "Et far-og-søn-projekt fra 1995",
         "text": "<p>Raflebægeret begyndte i 1995 som et far-og-søn-projekt i kælderen i Fredes barndomshjem. Fredes far, Erik, var en mester i trædrejning og havde i årevis lavet træfigurer med en præcision og omhu, der kom til at præge Frede dybt.</p><p>Resultatet er en nyfortolkning af det traditionelle raflebæger, hvor dansk design og æstetik går hånd i hånd med funktion.</p>",
         "asset": "tilt",
-        "alt": "Raflebægeret vippet, så foden og samlingen ses"
+        "alt": "TOVE vippet, så foden og samlingen ses",
+        "image": "shopify://shop_images/IMG_5642.jpg"
       }
     }
   },
-  "order": ["hero", "statement", "duo", "features", "collection", "engraving", "story"]
+  "order": [
+    "hero",
+    "statement",
+    "duo",
+    "features",
+    "collection",
+    "engraving",
+    "story"
+  ]
 }

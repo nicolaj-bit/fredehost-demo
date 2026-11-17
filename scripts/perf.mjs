@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 const { chromium } = createRequire(import.meta.url)('playwright');   // forudinstalleret globalt
 
 const RUNS = 7;
-const URLS = { 'Med 3D-gravering': 'http://localhost:8765/products/anny/', 'Uden 3D-gravering': 'http://localhost:8766/products/anny/' };
+const URLS = { 'Med 3D-gravering': 'http://localhost:8765/products/tove/', 'Uden 3D-gravering': 'http://localhost:8766/products/tove/' };
 const median = (a) => { const s = [...a].sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
 
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });

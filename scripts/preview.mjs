@@ -61,13 +61,13 @@ engine.registerTag('section', class extends Tag {
 });
 
 const product = {
-  title: 'ANNY Raflebæger',
-  handle: 'anny',
-  price: 89900,
+  title: 'TOVE Raflebæger',
+  handle: 'tove',
+  price: 99900,
   available: true,
   media: [],
   metafields: {},
-  description: '<p>Anny var en ægte samler, der fandt glæde i at bevare ting af betydning. Hun følte sig mest hjemme, når hele familien var samlet omkring hende. Med et skarpt øje for detaljer gik intet hende forbi, og hun havde altid et avisudklip eller en historie klar, der fangede de andres interesse.</p>',
+  description: '<p>Tove var indbegrebet af en solstråle, der trodsede livets udfordringer med et smil. Hun kunne lyse ethvert rum op, men var også en bestemt dame med klare holdninger, som aldrig var bange for at stå ved sine meninger.</p>',
 };
 
 async function page(template, outFile, extra) {
@@ -85,5 +85,5 @@ fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(path.join(out, 'assets'), { recursive: true });
 for (const f of fs.readdirSync(path.join(root, 'assets'))) fs.copyFileSync(path.join(root, 'assets', f), path.join(out, 'assets', f));
 await page('index', path.join(out, 'index.html'), { page_title: 'Frede Høst | Raflebægeret siden 1995' });
-await page('product', path.join(out, 'products/anny/index.html'), { product, page_title: 'ANNY Raflebæger i olieret eg' });
+await page('product', path.join(out, 'products/tove/index.html'), { product, page_title: 'TOVE Raflebæger i olieret wenge og eg' });
 console.log('Skrevet til', out, noEngraver ? '(uden gravering)' : '');

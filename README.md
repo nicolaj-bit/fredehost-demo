@@ -1,14 +1,16 @@
 # Frede Høst – demo
 
 Salgsoplæg til Frede Høst Denmark: et Shopify-tema med forside og én
-produktside (ANNY, raflebæger i olieret eg) med 3D-visning af gravering i
-bunden. Bygges i en Shopify dev store med kodeord. **fredehost.dk røres ikke.**
+produktside (TOVE, raflebæger i olieret wenge og eg, 999 kr.) med
+3D-visning af gravering i bunden. Siden var først ANNY i olieret eg, men alle
+fotos viser TOVE, så produktsiden blev skiftet. 3D-modellen kan begge:
+indstillingen «Træ i 3D-visningen» på produktsektionen (eg / wenge og eg). Bygges i en Shopify dev store med kodeord. **fredehost.dk røres ikke.**
 
 Der arbejdes kun på branchen `dev`. Temaet publiceres ikke uden Nicolajs ok.
 
 ## Omfang
 
-Med: forside, `/products/anny`, graveringsmodal med 3D.
+Med: forside, `/products/tove`, graveringsmodal med 3D.
 Ikke med: kurv, checkout, de øvrige fire bægre, øvrige sider, og
 Shopify-integrationen af graveringen (linjeegenskaber, upload af
 forhåndsvisning, produktionsdata på ordren). «Gem og læg i kurv» gemmer kun

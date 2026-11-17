@@ -3,7 +3,8 @@
     "main": {
       "type": "fh-product",
       "settings": {
-        "material": "Olieret eg",
+        "material": "Olieret wenge og eg",
+        "wood": "wenge-eg",
         "subtitle": "Raflebæger",
         "offer": "Få 10 % rabat, når du køber to eller flere raflebægre.",
         "story_eyebrow": "En ægte dansk original",
@@ -14,7 +15,7 @@
         "f1": { "type": "feature", "settings": { "title": "Foret med filt", "text": "Tæt, mørk filt tager lyden af raslende terninger og efterlader en blød, behagelig rumlen." } },
         "f2": { "type": "feature", "settings": { "title": "Holder på terningerne", "text": "Et todelt design med et elegant bundstykke, der holder på terningerne, så de ikke ender på gulvet." } },
         "f3": { "type": "feature", "settings": { "title": "Formet til hånden", "text": "En tidløs silhuet af tolv sammenføjede trædele, formet så den hviler naturligt i hånden." } },
-        "d1": { "type": "detail", "settings": { "title": "Mål og materiale", "text": "<p>Højde 15,5 cm · Diameter 9 cm · Vægt 300 g<br>Olieret eg · Inderside af mørk filt · Produceret i Danmark</p>" } },
+        "d1": { "type": "detail", "settings": { "title": "Mål og materiale", "text": "<p>Højde 15,5 cm · Diameter 9 cm · Vægt 300 g<br>Olieret wenge og eg · Inderside af mørk filt · Produceret i Danmark</p>" } },
         "d2": { "type": "detail", "settings": { "title": "Æskens indhold", "text": "<p>Raflebægeret leveres i en bomuldspose sammen med seks elfenbensfarvede terninger med sorte øjne.</p>" } },
         "d3": { "type": "detail", "settings": { "title": "Levering og retur", "text": "<p>Fri fragt ved køb over 499 kr. Leveringstiden er 1–3 hverdage – også for bægre med gravering.</p><p>Du har 30 dages bytte- og returret. Bægre, der er graveret efter dine ønsker, kan ikke byttes eller returneres.</p>" } },
         "d4": { "type": "detail", "settings": { "title": "Gravering", "text": "<p>Graveringen brændes ind i bunden af foden med laser. Det brændte bliver mørkt, men egetræets årer anes stadig igennem – præcis som Frede Høsts eget mærke.</p>" } }
