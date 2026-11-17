@@ -1,0 +1,21 @@
+{%- comment -%} Bredt billede med et citat. {%- endcomment -%}
+<section class="band" style="--focal: {{ section.settings.focal | default: '50% 50%' }}">
+  {% render 'fh-img', image: section.settings.image, asset: section.settings.asset, alt: section.settings.alt, sizes: '100vw', class: 'cover' %}
+  <div class="band__shade" aria-hidden="true"></div>
+  {%- if section.settings.quote != blank -%}
+    <div class="wrap band__inner"><p class="display-l band__quote">{{ section.settings.quote }}</p></div>
+  {%- endif -%}
+</section>
+{% schema %}
+{
+  "name": "Bredt billede",
+  "settings": [
+    { "type": "textarea", "id": "quote", "label": "Citat" },
+    { "type": "image_picker", "id": "image", "label": "Billede" },
+    { "type": "text", "id": "asset", "label": "Temafoto" },
+    { "type": "text", "id": "alt", "label": "Alt-tekst" },
+    { "type": "text", "id": "focal", "label": "Fokuspunkt", "default": "50% 50%" }
+  ],
+  "presets": [{ "name": "Bredt billede" }]
+}
+{% endschema %}

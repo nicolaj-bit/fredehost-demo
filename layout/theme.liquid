@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="da">
+<html lang="da" data-mood="{{ settings.mood | default: 'lys' }}">
   <head>
     {% render 'head-common' %}
     <title>{{ page_title }}{% unless page_title contains 'Frede Høst' %} – Frede Høst Denmark{% endunless %}</title>

@@ -1,0 +1,91 @@
+{
+  "sections": {
+    "hero": {
+      "type": "fh-hero-full",
+      "settings": {
+        "eyebrow": "Frede Høst · Dansk design siden 1995",
+        "heading": "En ægte dansk <em>original</em>",
+        "text": "Raflebægeret i træ. Til aftenerne, hvor ingen har travlt med at gå hjem.",
+        "button": "Se TOVE",
+        "url": "/products/tove",
+        "button2": "Gravér dit eget",
+        "url2": "/products/tove#gravering",
+        "asset": "lounge-hero",
+        "alt": "Frede Høst i en træstol med et raflebæger i hånden",
+        "focal": "62% 12%",
+        "focal_mobile": "64% 18%"
+      }
+    },
+    "statement": {
+      "type": "fh-statement",
+      "settings": { "text": "Tolv trædele, foret med filt. Et kast, der lyder af kvalitet – ikke af larm." }
+    },
+    "duo": {
+      "type": "fh-duo",
+      "blocks": {
+        "a": { "type": "image", "settings": { "asset": "lounge-black", "alt": "Hånd der løfter et mørkt raflebæger med blå terninger i bundstykket", "caption": "Bundstykket holder på terningerne." } },
+        "b": { "type": "image", "settings": { "asset": "lounge-chair", "alt": "Tre raflebægre på et bord foran en flettet designerstol", "caption": "Til stuen, sommerhuset og spillebordet." } }
+      },
+      "block_order": ["a", "b"]
+    },
+    "features": {
+      "type": "fh-features",
+      "settings": { "eyebrow": "Raflebægeret", "heading": "Bygget til <em>mange</em> aftener" },
+      "blocks": {
+        "f1": { "type": "feature", "settings": { "title": "Formet til hånden", "text": "En tidløs silhuet af tolv sammenføjede trædele, formet så den hviler naturligt i hånden." } },
+        "f2": { "type": "feature", "settings": { "title": "Foret med filt", "text": "Tæt, mørk filt tager lyden af terningerne. Tilbage er en blød, dæmpet rumlen." } },
+        "f3": { "type": "feature", "settings": { "title": "Todelt bund", "text": "Et elegant bundstykke holder på terningerne, så de bliver på bordet og ikke ender på gulvet." } }
+      },
+      "block_order": ["f1", "f2", "f3"]
+    },
+    "band": {
+      "type": "fh-band",
+      "settings": { "quote": "Spillet er det samme. Bægeret er ikke.", "asset": "lounge-band", "alt": "Et raflebæger holdt op mod kameraet foran en mand i halvmørke", "focal": "40% 40%" }
+    },
+    "collection": {
+      "type": "fh-collection",
+      "settings": {
+        "eyebrow": "Fem træsorter",
+        "heading": "Samme form. <em>Hver sit navn.</em>",
+        "text": "Alle raflebægre er dansk design siden 1995 og leveres med seks terninger i en bomuldspose."
+      },
+      "blocks": {
+        "anny": { "type": "cup", "settings": { "name": "ANNY", "wood": "Olieret eg", "price": "899 kr." } },
+        "erik": { "type": "cup", "settings": { "name": "ERIK", "wood": "Olieret mahogni", "price": "" } },
+        "tove": { "type": "cup", "settings": { "name": "TOVE", "wood": "Olieret wenge og eg", "price": "999 kr.", "url": "/products/tove" } },
+        "knud": { "type": "cup", "settings": { "name": "KNUD", "wood": "Olieret valnød", "price": "1.099 kr." } },
+        "poul": { "type": "cup", "settings": { "name": "POUL", "wood": "Hvidolieret eg", "price": "" } }
+      },
+      "block_order": ["anny", "erik", "tove", "knud", "poul"]
+    },
+    "engraving": {
+      "type": "fh-split",
+      "settings": {
+        "eyebrow": "Gravering",
+        "heading": "Jeres ord. <em>Brændt i træet.</em>",
+        "text": "<p>Et navn, en dato eller en hilsen, der vækker minder om en særlig dag – eller om aftenerne, hvor I var samlet om bordet.</p><p>Se graveringen i 3D, før du bestiller.</p>",
+        "button": "Prøv en gravering",
+        "url": "/products/tove#gravering",
+        "asset": "lounge-engrave",
+        "alt": "Bunden af et mørkt raflebæger med graveringen «Tab og Vind – Familien Høst»",
+        "reverse": true
+      }
+    },
+    "story": {
+      "type": "fh-triptych",
+      "settings": {
+        "anchor": "historien",
+        "eyebrow": "Om Frede Høst",
+        "heading": "Et far-og-søn-projekt fra <em>1995</em>",
+        "text": "<p>Raflebægeret begyndte i kælderen i Fredes barndomshjem. Fredes far, Erik, var en mester i trædrejning og havde i årevis lavet træfigurer med en præcision og omhu, der kom til at præge Frede dybt.</p>"
+      },
+      "blocks": {
+        "a": { "type": "image", "settings": { "asset": "lounge-craft1", "alt": "Erik Høst ved arbejdsbænken i værkstedet", "year": "1995", "caption": "Far og søn i kælderen" } },
+        "b": { "type": "image", "settings": { "asset": "lounge-craft2", "alt": "Trædrejning på drejebænken", "year": "Drejet", "caption": "Formen skabes på drejebænken" } },
+        "c": { "type": "image", "settings": { "asset": "lounge-craft3", "alt": "Træ forberedes i værkstedet", "year": "Danmark", "caption": "Produceret i Danmark" } }
+      },
+      "block_order": ["a", "b", "c"]
+    }
+  },
+  "order": ["hero", "statement", "duo", "features", "band", "collection", "engraving", "story"]
+}

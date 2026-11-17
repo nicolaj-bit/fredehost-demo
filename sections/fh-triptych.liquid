@@ -1,0 +1,38 @@
+{%- comment -%} Tre billeder med billedtekst og en indledning. {%- endcomment -%}
+<section class="triptych wrap" {% if section.settings.anchor != blank %}id="{{ section.settings.anchor }}"{% endif %}>
+  <header class="triptych__head">
+    <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+    <h2 class="display-m">{{ section.settings.heading }}</h2>
+    <div class="prose">{{ section.settings.text }}</div>
+  </header>
+  <div class="triptych__grid">
+    {%- for block in section.blocks -%}
+      <figure class="triptych__item" {{ block.shopify_attributes }}>
+        <div class="triptych__img">
+          {% render 'fh-img', image: block.settings.image, asset: block.settings.asset, alt: block.settings.alt, sizes: '(min-width: 900px) 30vw, 100vw', class: 'cover' %}
+        </div>
+        <figcaption><span>{{ block.settings.year }}</span> {{ block.settings.caption }}</figcaption>
+      </figure>
+    {%- endfor -%}
+  </div>
+</section>
+{% schema %}
+{
+  "name": "Tre billeder",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Overlinje" },
+    { "type": "text", "id": "heading", "label": "Overskrift" },
+    { "type": "richtext", "id": "text", "label": "Tekst" },
+    { "type": "text", "id": "anchor", "label": "Anker-id" }
+  ],
+  "blocks": [ { "type": "image", "name": "Billede", "settings": [
+    { "type": "image_picker", "id": "image", "label": "Billede" },
+    { "type": "text", "id": "asset", "label": "Temafoto" },
+    { "type": "text", "id": "alt", "label": "Alt-tekst" },
+    { "type": "text", "id": "year", "label": "Årstal eller mærke" },
+    { "type": "text", "id": "caption", "label": "Billedtekst" }
+  ] } ],
+  "max_blocks": 3,
+  "presets": [{ "name": "Tre billeder" }]
+}
+{% endschema %}

@@ -16,6 +16,17 @@ Shopify-integrationen af graveringen (linjeegenskaber, upload af
 forhåndsvisning, produktionsdata på ordren). «Gem og læg i kurv» gemmer kun
 graveringen på siden.
 
+## Lounge-udtryk
+
+Indstillingen «Udtryk» (lys / lounge) i temaets indstillinger skifter hele
+temaet til et mørkt, varmt udtryk: cognac, valnød og messing. Lounge-forsiden
+ligger i `templates/index.lounge.json` og bruger Frede Høsts egne fotos fra
+fredehost.dk (`assets/fh-lounge-*.webp`).
+
+```bash
+npm run preview -- --mood lounge --index index.lounge --out dist-lounge
+```
+
 ## Ikke til søgemaskiner
 
 - Kodeord på butikken.

@@ -1,0 +1,38 @@
+{%- comment -%} Fuldt billede med tekst ovenpå. Bruges i lounge-udtrykket. {%- endcomment -%}
+<section class="hero-full" style="--focal: {{ section.settings.focal | default: '50% 50%' }}; --focal-m: {{ section.settings.focal_mobile | default: '50% 50%' }}">
+  <figure class="hero-full__media">
+    {% render 'fh-img', image: section.settings.image, asset: section.settings.asset, alt: section.settings.alt, sizes: '100vw', eager: true, class: 'cover' %}
+  </figure>
+  <div class="hero-full__shade" aria-hidden="true"></div>
+  <div class="wrap hero-full__inner">
+    <div class="hero-full__text">
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      <h1 class="display-xl">{{ section.settings.heading }}</h1>
+      <p class="lead">{{ section.settings.text }}</p>
+      <p class="hero__actions">
+        {%- if section.settings.button != blank -%}<a class="btn btn--solid" href="{{ section.settings.url }}">{{ section.settings.button }}</a>{%- endif -%}
+        {%- if section.settings.button2 != blank -%}<a class="link" href="{{ section.settings.url2 }}">{{ section.settings.button2 }}</a>{%- endif -%}
+      </p>
+    </div>
+  </div>
+</section>
+{% schema %}
+{
+  "name": "Hero, fuldt billede",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Overlinje" },
+    { "type": "text", "id": "heading", "label": "Overskrift" },
+    { "type": "textarea", "id": "text", "label": "Tekst" },
+    { "type": "text", "id": "button", "label": "Knap" },
+    { "type": "url", "id": "url", "label": "Knaplink" },
+    { "type": "text", "id": "button2", "label": "Sekundært link" },
+    { "type": "url", "id": "url2", "label": "Sekundært link, adresse" },
+    { "type": "image_picker", "id": "image", "label": "Billede" },
+    { "type": "text", "id": "asset", "label": "Temafoto (hvis intet billede)" },
+    { "type": "text", "id": "alt", "label": "Alt-tekst" },
+    { "type": "text", "id": "focal", "label": "Fokuspunkt, computer", "default": "50% 50%" },
+    { "type": "text", "id": "focal_mobile", "label": "Fokuspunkt, mobil", "default": "50% 50%" }
+  ],
+  "presets": [{ "name": "Hero, fuldt billede" }]
+}
+{% endschema %}

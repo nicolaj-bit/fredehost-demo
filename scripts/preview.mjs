@@ -11,6 +11,9 @@ import path from 'node:path';
 const root = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const out = path.join(root, process.argv.includes('--out') ? process.argv[process.argv.indexOf('--out') + 1] : 'dist');
 const noEngraver = process.argv.includes('--no-engraver');
+const arg = (n) => (process.argv.includes(n) ? process.argv[process.argv.indexOf(n) + 1] : null);
+const mood = arg('--mood');          // fx --mood lounge
+const indexTpl = arg('--index') || 'index';   // fx --index index.lounge
 
 const engine = new Liquid({ root: [path.join(root, 'snippets')], extname: '.liquid', strictFilters: false });
 
@@ -31,6 +34,7 @@ const readSchema = (src) => {
 const defaults = (list = []) => Object.fromEntries(list.filter((s) => 'id' in s).map((s) => [s.id, s.default ?? '']));
 const settingsSchema = JSON.parse(fs.readFileSync(path.join(root, 'config/settings_schema.json'), 'utf8'));
 const globalSettings = Object.assign({}, ...settingsSchema.map((g) => defaults(g.settings)));
+if (mood) globalSettings.mood = mood;
 
 async function renderSection(type, data, ctx) {
   const file = path.join(root, 'sections', type + '.liquid');
@@ -84,6 +88,6 @@ async function page(template, outFile, extra) {
 fs.rmSync(out, { recursive: true, force: true });
 fs.mkdirSync(path.join(out, 'assets'), { recursive: true });
 for (const f of fs.readdirSync(path.join(root, 'assets'))) fs.copyFileSync(path.join(root, 'assets', f), path.join(out, 'assets', f));
-await page('index', path.join(out, 'index.html'), { page_title: 'Frede Høst | Raflebægeret siden 1995' });
+await page(indexTpl, path.join(out, 'index.html'), { page_title: 'Frede Høst | Raflebægeret siden 1995' });
 await page('product', path.join(out, 'products/tove/index.html'), { product, page_title: 'TOVE Raflebæger i olieret wenge og eg' });
 console.log('Skrevet til', out, noEngraver ? '(uden gravering)' : '');
