@@ -1,0 +1,42 @@
+<section class="features wrap" {% if section.settings.anchor != blank %}id="{{ section.settings.anchor }}"{% endif %}>
+  {%- if section.settings.heading != blank -%}
+    <header class="section-head">
+      <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+      <h2 class="display-m">{{ section.settings.heading }}</h2>
+    </header>
+  {%- endif -%}
+  <div class="features__grid">
+    {%- for block in section.blocks -%}
+      <article class="feature" {{ block.shopify_attributes }}>
+        {%- if block.settings.asset != blank or block.settings.image != blank -%}
+          <figure class="feature__media">
+            {% render 'fh-img', image: block.settings.image, asset: block.settings.asset, alt: block.settings.alt, sizes: '(min-width: 900px) 30vw, 100vw', class: 'cover' %}
+          </figure>
+        {%- endif -%}
+        <p class="feature__num">{{ forloop.index | prepend: '0' }}</p>
+        <h3 class="display-s">{{ block.settings.title }}</h3>
+        <p class="muted">{{ block.settings.text }}</p>
+      </article>
+    {%- endfor -%}
+  </div>
+</section>
+{% schema %}
+{
+  "name": "Egenskaber",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Overlinje" },
+    { "type": "text", "id": "heading", "label": "Overskrift" },
+    { "type": "text", "id": "anchor", "label": "Anker-id" }
+  ],
+  "blocks": [
+    { "type": "feature", "name": "Egenskab", "settings": [
+      { "type": "text", "id": "title", "label": "Titel" },
+      { "type": "textarea", "id": "text", "label": "Tekst" },
+      { "type": "image_picker", "id": "image", "label": "Billede" },
+      { "type": "text", "id": "asset", "label": "Temafoto" },
+      { "type": "text", "id": "alt", "label": "Alt-tekst" }
+    ] }
+  ],
+  "presets": [{ "name": "Egenskaber" }]
+}
+{% endschema %}

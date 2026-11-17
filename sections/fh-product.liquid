@@ -1,0 +1,97 @@
+{%- liquid
+  assign material = product.metafields.custom.material.value | default: section.settings.material
+  assign subtitle = section.settings.subtitle
+-%}
+<nav class="crumbs wrap" aria-label="Brødkrumme">
+  <a href="{{ routes.root_url }}">Forside</a> <span aria-hidden="true">/</span> <a href="{{ routes.root_url }}#kollektion">Raflebægre</a> <span aria-hidden="true">/</span> <span aria-current="page">{{ product.title | split: ' ' | first }}</span>
+</nav>
+
+<section class="product wrap">
+  <div class="product__gallery" aria-label="Billeder af {{ product.title }}">
+    {%- if product.media.size > 0 -%}
+      {%- for media in product.media -%}
+        <figure class="product__shot">
+          {% render 'fh-img', image: media.preview_image, alt: media.alt, sizes: '(min-width: 900px) 56vw, 92vw', eager: forloop.first, class: 'cover' %}
+        </figure>
+      {%- endfor -%}
+    {%- else -%}
+      {%- assign shots = 'front,tilt,bottom,above,top' | split: ',' -%}
+      {%- for s in shots -%}
+        <figure class="product__shot">
+          {% render 'fh-img', asset: s, alt: product.title, sizes: '(min-width: 900px) 56vw, 92vw', eager: forloop.first, class: 'cover' %}
+        </figure>
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+
+  <div class="product__info">
+    <div class="product__sticky">
+      <p class="eyebrow">{{ material }}</p>
+      <h1 class="product__title"><span class="display-xl">{{ product.title | split: ' ' | first }}</span> <span class="product__kind">{{ subtitle }}</span></h1>
+      <p class="product__price">{{ product.price | money_without_trailing_zeros | replace: ',00', '' }}</p>
+
+      <div class="prose product__desc">{{ product.description }}</div>
+
+      {%- render 'engraver-modal', product: product, material: material -%}
+
+      <ul class="product__facts">
+        <li><span>Levering</span> 1–3 hverdage, også med gravering</li>
+        <li><span>Fragt</span> Gratis over 499 kr.</li>
+        <li><span>Lager</span> {% if product.available %}På lager{% else %}Udsolgt{% endif %}</li>
+      </ul>
+      {%- if section.settings.offer != blank -%}<p class="product__offer">{{ section.settings.offer }}</p>{%- endif -%}
+    </div>
+  </div>
+</section>
+
+<section class="product-features wrap">
+  {%- for block in section.blocks -%}
+    {%- if block.type == 'feature' -%}
+      <article class="feature" {{ block.shopify_attributes }}>
+        <p class="feature__num">{{ forloop.index | prepend: '0' }}</p>
+        <h2 class="display-s">{{ block.settings.title }}</h2>
+        <p class="muted">{{ block.settings.text }}</p>
+      </article>
+    {%- endif -%}
+  {%- endfor -%}
+</section>
+
+<section class="product-details wrap">
+  <div class="product-details__intro">
+    <p class="eyebrow">{{ section.settings.story_eyebrow }}</p>
+    <h2 class="display-m">{{ section.settings.story_heading }}</h2>
+    <div class="prose">{{ section.settings.story_text }}</div>
+  </div>
+  <div class="product-details__list">
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'detail' -%}
+        <details class="detail" {% if forloop.index == 4 %}open{% endif %} {{ block.shopify_attributes }}>
+          <summary>{{ block.settings.title }}</summary>
+          <div class="prose">{{ block.settings.text }}</div>
+        </details>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Produkt",
+  "settings": [
+    { "type": "text", "id": "material", "label": "Materiale (bruges hvis metafelt mangler)", "default": "Olieret eg" },
+    { "type": "text", "id": "subtitle", "label": "Undertitel", "default": "Raflebæger" },
+    { "type": "text", "id": "offer", "label": "Tilbud" },
+    { "type": "text", "id": "story_eyebrow", "label": "Fortælling: overlinje" },
+    { "type": "text", "id": "story_heading", "label": "Fortælling: overskrift" },
+    { "type": "richtext", "id": "story_text", "label": "Fortælling: tekst" }
+  ],
+  "blocks": [
+    { "type": "feature", "name": "Egenskab", "settings": [
+      { "type": "text", "id": "title", "label": "Titel" },
+      { "type": "textarea", "id": "text", "label": "Tekst" } ] },
+    { "type": "detail", "name": "Fold-ud", "settings": [
+      { "type": "text", "id": "title", "label": "Titel" },
+      { "type": "richtext", "id": "text", "label": "Tekst" } ] }
+  ]
+}
+{% endschema %}

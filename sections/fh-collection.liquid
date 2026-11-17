@@ -1,0 +1,38 @@
+<section class="collection wrap" id="kollektion">
+  <header class="section-head">
+    <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+    <h2 class="display-m">{{ section.settings.heading }}</h2>
+    <p class="muted">{{ section.settings.text }}</p>
+  </header>
+  <ol class="collection__list">
+    {%- for block in section.blocks -%}
+      <li class="collection__item" {{ block.shopify_attributes }}>
+        {%- if block.settings.url != blank -%}<a class="collection__row" href="{{ block.settings.url }}">{%- else -%}<div class="collection__row">{%- endif -%}
+          <span class="collection__name">{{ block.settings.name }}</span>
+          <span class="collection__wood">{{ block.settings.wood }}</span>
+          <span class="collection__price">{{ block.settings.price }}</span>
+          {%- if block.settings.url != blank -%}<span class="collection__arrow" aria-hidden="true">→</span>{%- endif -%}
+        {%- if block.settings.url != blank -%}</a>{%- else -%}</div>{%- endif -%}
+      </li>
+    {%- endfor -%}
+  </ol>
+</section>
+{% schema %}
+{
+  "name": "Kollektion",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Overlinje" },
+    { "type": "text", "id": "heading", "label": "Overskrift" },
+    { "type": "textarea", "id": "text", "label": "Tekst" }
+  ],
+  "blocks": [
+    { "type": "cup", "name": "Raflebæger", "settings": [
+      { "type": "text", "id": "name", "label": "Navn" },
+      { "type": "text", "id": "wood", "label": "Træ" },
+      { "type": "text", "id": "price", "label": "Pris" },
+      { "type": "url", "id": "url", "label": "Link" }
+    ] }
+  ],
+  "presets": [{ "name": "Kollektion" }]
+}
+{% endschema %}

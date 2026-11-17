@@ -1,0 +1,13 @@
+{
+  "name": "fredehost-demo",
+  "private": true,
+  "type": "module",
+  "description": "Salgsoplæg til Frede Høst Denmark: Shopify-tema med forside, ANNY-produktside og 3D-visning af gravering.",
+  "scripts": {
+    "preview": "node scripts/preview.mjs",
+    "perf": "node scripts/perf.mjs"
+  },
+  "devDependencies": {
+    "liquidjs": "10.16.1"
+  }
+}

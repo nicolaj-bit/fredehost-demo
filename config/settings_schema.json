@@ -1,0 +1,18 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Frede Høst demo",
+    "theme_version": "0.1.0",
+    "theme_author": "LALATOTO of Denmark ApS",
+    "theme_documentation_url": "https://github.com/nicolaj-bit/fredehost-demo",
+    "theme_support_url": "https://github.com/nicolaj-bit/fredehost-demo"
+  },
+  {
+    "name": "Butik",
+    "settings": [
+      { "type": "text", "id": "announcement", "label": "Topbjælke", "default": "Fri levering ved køb over 499 kr. · Levering på 1–3 hverdage · 30 dages bytte- og returret" },
+      { "type": "text", "id": "contact_email", "label": "Kontakt-e-mail", "default": "kontakt@fredehost.dk" },
+      { "type": "text", "id": "cvr", "label": "CVR", "default": "38 86 02 24" }
+    ]
+  }
+]

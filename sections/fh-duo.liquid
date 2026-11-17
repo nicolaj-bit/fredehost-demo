@@ -1,0 +1,21 @@
+<section class="duo">
+  {%- for block in section.blocks -%}
+    <figure class="duo__item" {{ block.shopify_attributes }}>
+      {% render 'fh-img', image: block.settings.image, asset: block.settings.asset, alt: block.settings.alt, sizes: '(min-width: 900px) 50vw, 100vw', class: 'cover' %}
+      {%- if block.settings.caption != blank -%}<figcaption>{{ block.settings.caption }}</figcaption>{%- endif -%}
+    </figure>
+  {%- endfor -%}
+</section>
+{% schema %}
+{
+  "name": "To billeder",
+  "blocks": [ { "type": "image", "name": "Billede", "settings": [
+    { "type": "image_picker", "id": "image", "label": "Billede" },
+    { "type": "text", "id": "asset", "label": "Temafoto" },
+    { "type": "text", "id": "alt", "label": "Alt-tekst" },
+    { "type": "text", "id": "caption", "label": "Billedtekst" }
+  ] } ],
+  "max_blocks": 2,
+  "presets": [{ "name": "To billeder" }]
+}
+{% endschema %}

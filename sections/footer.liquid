@@ -1,0 +1,22 @@
+<footer class="site-footer">
+  <div class="wrap site-footer__grid">
+    <div>
+      <p class="wordmark wordmark--lg">FREDE HØST</p>
+      <p class="muted">Raflebægeret i træ. Dansk design siden 1995.</p>
+    </div>
+    <div>
+      <p class="eyebrow">Spørgsmål</p>
+      <p><a class="link" href="mailto:{{ settings.contact_email }}">{{ settings.contact_email }}</a></p>
+    </div>
+    <div>
+      <p class="eyebrow">Levering</p>
+      <p class="muted">Fri fragt over 499 kr.<br>1–3 hverdage, også med gravering<br>30 dages bytte- og returret</p>
+    </div>
+  </div>
+  <div class="wrap site-footer__base">
+    <p>© {{ 'now' | date: '%Y' }} Frede Høst Denmark · CVR {{ settings.cvr }}</p>
+  </div>
+</footer>
+{% schema %}
+{ "name": "Footer", "settings": [] }
+{% endschema %}

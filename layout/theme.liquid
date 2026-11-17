@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    {% render 'head-common' %}
+    <title>{{ page_title }}{% unless page_title contains 'Frede Høst' %} – Frede Høst Denmark{% endunless %}</title>
+    {%- if page_description -%}<meta name="description" content="{{ page_description | escape }}">{%- endif -%}
+    {{ content_for_header }}
+  </head>
+  <body class="template-{{ template.name }}">
+    <a class="skip" href="#main">Spring til indhold</a>
+    {% section 'header' %}
+    <main id="main">
+      {{ content_for_layout }}
+    </main>
+    {% section 'footer' %}
+  </body>
+</html>

@@ -1,0 +1,28 @@
+{%- comment -%}
+  Responsivt billede. Bruger et billede fra butikken, hvis det er valgt i
+  temaeditoren, ellers temaets egne fotos (assets/fh-<navn>-800/1400.webp).
+  Parametre: image, asset, alt, sizes, eager, class, ratio
+{%- endcomment -%}
+{%- liquid
+  assign sizes = sizes | default: '100vw'
+  if eager
+    assign loading = 'eager'
+    assign priority = 'high'
+  else
+    assign loading = 'lazy'
+    assign priority = 'auto'
+  endif
+-%}
+{%- if image != blank -%}
+  <img class="{{ class }}" src="{{ image | image_url: width: 1400 }}"
+    srcset="{{ image | image_url: width: 700 }} 700w, {{ image | image_url: width: 1100 }} 1100w, {{ image | image_url: width: 1600 }} 1600w, {{ image | image_url: width: 2200 }} 2200w"
+    sizes="{{ sizes }}" width="{{ image.width }}" height="{{ image.height }}"
+    alt="{{ alt | default: image.alt | escape }}" loading="{{ loading }}" fetchpriority="{{ priority }}" decoding="async">
+{%- else -%}
+  {%- assign a800 = 'fh-' | append: asset | append: '-800.webp' -%}
+  {%- assign a1400 = 'fh-' | append: asset | append: '-1400.webp' -%}
+  <img class="{{ class }}" src="{{ a1400 | asset_url }}"
+    srcset="{{ a800 | asset_url }} 800w, {{ a1400 | asset_url }} 1400w"
+    sizes="{{ sizes }}" width="1500" height="2000"
+    alt="{{ alt | escape }}" loading="{{ loading }}" fetchpriority="{{ priority }}" decoding="async">
+{%- endif -%}

@@ -1,0 +1,20 @@
+{%- if settings.announcement != blank -%}
+  <div class="announce"><p class="wrap">{{ settings.announcement }}</p></div>
+{%- endif -%}
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a class="wordmark" href="{{ routes.root_url }}" aria-label="Frede Høst – forside">FREDE HØST</a>
+    <nav class="site-nav" aria-label="Hovedmenu">
+      {%- for link in section.settings.menu.links -%}
+        <a href="{{ link.url }}">{{ link.title }}</a>
+      {%- else -%}
+        <a href="{{ routes.root_url }}#kollektion">Raflebægre</a>
+        <a href="/products/anny">ANNY</a>
+        <a href="{{ routes.root_url }}#historien">Om Frede Høst</a>
+      {%- endfor -%}
+    </nav>
+  </div>
+</header>
+{% schema %}
+{ "name": "Header", "settings": [ { "type": "link_list", "id": "menu", "label": "Menu" } ] }
+{% endschema %}

@@ -1,0 +1,150 @@
+{%- comment -%}
+  Gravering med 3D-forhåndsvisning.
+
+  Ydelse: Intet tungt hentes, når siden indlæses. Kun denne markup og et lille
+  inline-script følger med. three.js (≈ 650 kB) og engraver.js hentes først
+  med import(), når kunden åbner modalen. Der er bevidst ingen prefetch.
+
+  Ikke bygget endnu (kommer, hvis aftalen lander): linjeegenskaber på
+  kurvlinjen, upload af forhåndsvisningen og produktionsdata på ordren.
+  «Gem og læg i kurv» gemmer kun graveringen lokalt på siden.
+{%- endcomment -%}
+{%- assign short_title = product.title | split: ' ' | first -%}
+<div class="engrave-cta" id="gravering">
+  <div>
+    <p class="engrave-cta__title">Gravering i bunden</p>
+    <p class="muted" data-engrave-summary>Et navn, en dato eller en kort hilsen. Se den i 3D, før du bestiller.</p>
+  </div>
+  <button type="button" class="btn btn--solid btn--wide" data-engrave-open aria-haspopup="dialog">Tilføj gravering</button>
+  <button type="button" class="btn btn--line btn--wide" data-demo-cart>Læg i kurv uden gravering</button>
+  <p class="engrave-cta__status" role="status" data-cart-status></p>
+</div>
+
+<dialog class="engraver" aria-labelledby="engraver-title" data-engraver
+  data-engraver-src="{{ 'engraver.js' | asset_url }}"
+  data-three-src="{{ 'three.module.min.js' | asset_url }}">
+  <div class="engraver__stage" data-stage>
+    <canvas class="engraver__canvas" data-canvas aria-label="3D-visning af bægeret med graveringen i bunden" role="img"></canvas>
+    <p class="engraver__loading" data-loading>Henter 3D-visning …</p>
+    <p class="engraver__hint">Træk for at dreje</p>
+    <button type="button" class="engraver__reset" data-reset>Vis bunden</button>
+  </div>
+
+  <form class="engraver__panel" data-form novalidate>
+    <button type="button" class="engraver__close" data-close aria-label="Luk">×</button>
+    <p class="eyebrow">{{ short_title }} · {{ material }}</p>
+    <h2 class="display-m" id="engraver-title">Gravering i bunden</h2>
+    <p class="muted">Teksten brændes ind i foden med laser. Op til to linjer.</p>
+
+    <div class="field">
+      <label for="eng-line1">Linje 1</label>
+      <input id="eng-line1" name="line1" maxlength="18" autocomplete="off" placeholder="Fx Familien Høst" data-line>
+      <span class="field__count" data-count-for="line1">0/18</span>
+    </div>
+    <div class="field">
+      <label for="eng-line2">Linje 2 <span class="muted">(valgfri)</span></label>
+      <input id="eng-line2" name="line2" maxlength="18" autocomplete="off" placeholder="Fx Jul 2026" data-line>
+      <span class="field__count" data-count-for="line2">0/18</span>
+    </div>
+    <fieldset class="field field--choice">
+      <legend>Skrift</legend>
+      <label><input type="radio" name="font" value="serif" checked> <span class="font-serif">Klassisk</span></label>
+      <label><input type="radio" name="font" value="sans"> <span class="font-sans">Moderne</span></label>
+    </fieldset>
+
+    <div class="order">
+      <p class="order__title">Sådan står det på ordren</p>
+      <dl class="order__list">
+        <div><dt>Produkt</dt><dd>{{ product.title }}</dd></div>
+        <div><dt>Træ</dt><dd>{{ material }}</dd></div>
+        <div><dt>Gravering</dt><dd data-order="text">Ingen tekst endnu</dd></div>
+        <div><dt>Skrift</dt><dd data-order="font">Klassisk</dd></div>
+        <div><dt>Placering</dt><dd>Bunden af foden, over Frede Høsts mærke</dd></div>
+        <div><dt>Levering</dt><dd>1–3 hverdage</dd></div>
+        <div class="order__total"><dt>Pris</dt><dd>{{ product.price | money_without_trailing_zeros | replace: ',00', '' }}</dd></div>
+      </dl>
+      <p class="order__note">Graverede bægre kan ikke byttes eller returneres.</p>
+    </div>
+
+    <button type="submit" class="btn btn--solid btn--wide" data-save>Gem og læg i kurv</button>
+    <p class="engraver__status" role="status" data-status></p>
+  </form>
+</dialog>
+
+<script type="module" async>
+  (function () {
+    var root = document.querySelector('[data-engraver]');
+    if (!root) return;
+    var form = root.querySelector('[data-form]');
+    var fontName = { serif: 'Klassisk', sans: 'Moderne' };
+    var view = null, loading = null;
+
+    function state() {
+      return {
+        line1: form.line1.value.trim(),
+        line2: form.line2.value.trim(),
+        font: form.querySelector('input[name=font]:checked').value
+      };
+    }
+    function render() {
+      var s = state();
+      var text = [s.line1, s.line2].filter(Boolean).join(' / ');
+      root.querySelector('[data-order=text]').textContent = text ? '«' + text + '»' : 'Ingen tekst endnu';
+      root.querySelector('[data-order=font]').textContent = fontName[s.font];
+      ['line1', 'line2'].forEach(function (n) {
+        root.querySelector('[data-count-for=' + n + ']').textContent = form[n].value.length + '/18';
+      });
+      if (view) view.setText(s);
+    }
+    // three.js og engraver.js hentes først her, når modalen åbnes.
+    function load() {
+      if (loading) return loading;
+      loading = import(root.dataset.engraverSrc)
+        .then(function (m) { return m.mount(root.querySelector('[data-canvas]'), root.dataset.threeSrc); })
+        .then(function (v) { view = v; root.classList.add('is-ready'); render(); })
+        .catch(function (err) {
+          console.error(err);
+          root.querySelector('[data-loading]').textContent = '3D-visningen kunne ikke indlæses.';
+          loading = null;
+        });
+      return loading;
+    }
+    function open() {
+      root.showModal();
+      document.documentElement.classList.add('modal-open');
+      load();
+      form.line1.focus({ preventScroll: true });
+    }
+    function close() { root.close(); }
+
+    document.querySelectorAll('[data-engrave-open]').forEach(function (b) { b.addEventListener('click', open); });
+    root.querySelector('[data-close]').addEventListener('click', close);
+    root.querySelector('[data-reset]').addEventListener('click', function () { if (view) view.reset(); });
+    root.addEventListener('close', function () {
+      document.documentElement.classList.remove('modal-open');
+      if (view) view.pause();
+    });
+    root.addEventListener('click', function (e) { if (e.target === root) close(); });
+    root.addEventListener('toggle', function () { if (root.open && view) view.resume(); });
+    form.addEventListener('input', render);
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var s = state();
+      var text = [s.line1, s.line2].filter(Boolean).join(' / ');
+      if (!text) {
+        root.querySelector('[data-status]').textContent = 'Skriv mindst én linje, før du gemmer.';
+        form.line1.focus();
+        return;
+      }
+      // Demo: Ingen rigtig kurv endnu. Graveringen huskes kun på siden.
+      document.querySelector('[data-engrave-summary]').textContent = 'Din gravering: «' + text + '» · ' + fontName[s.font] + ' skrift';
+      document.querySelector('[data-engrave-open]').textContent = 'Ret gravering';
+      document.querySelector('[data-cart-status]').textContent = 'Gemt. I den færdige butik ligger bægeret nu i kurven med graveringen.';
+      root.querySelector('[data-status]').textContent = '';
+      close();
+    });
+    document.querySelector('[data-demo-cart]').addEventListener('click', function () {
+      document.querySelector('[data-cart-status]').textContent = 'Kurven er ikke koblet på i forhåndsvisningen.';
+    });
+  })();
+</script>

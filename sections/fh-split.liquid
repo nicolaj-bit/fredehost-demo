@@ -1,0 +1,31 @@
+<section class="split {% if section.settings.reverse %}split--reverse{% endif %}" {% if section.settings.anchor != blank %}id="{{ section.settings.anchor }}"{% endif %}>
+  <figure class="split__media">
+    {% render 'fh-img', image: section.settings.image, asset: section.settings.asset, alt: section.settings.alt, sizes: '(min-width: 900px) 50vw, 100vw', class: 'cover' %}
+  </figure>
+  <div class="split__text">
+    <p class="eyebrow">{{ section.settings.eyebrow }}</p>
+    <h2 class="display-m">{{ section.settings.heading }}</h2>
+    <div class="prose">{{ section.settings.text }}</div>
+    {%- if section.settings.button != blank -%}
+      <p><a class="btn btn--line" href="{{ section.settings.url }}">{{ section.settings.button }}</a></p>
+    {%- endif -%}
+  </div>
+</section>
+{% schema %}
+{
+  "name": "Billede og tekst",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Overlinje" },
+    { "type": "text", "id": "heading", "label": "Overskrift" },
+    { "type": "richtext", "id": "text", "label": "Tekst" },
+    { "type": "text", "id": "button", "label": "Knap" },
+    { "type": "url", "id": "url", "label": "Knaplink" },
+    { "type": "image_picker", "id": "image", "label": "Billede" },
+    { "type": "text", "id": "asset", "label": "Temafoto" },
+    { "type": "text", "id": "alt", "label": "Alt-tekst" },
+    { "type": "checkbox", "id": "reverse", "label": "Billede til højre", "default": false },
+    { "type": "text", "id": "anchor", "label": "Anker-id" }
+  ],
+  "presets": [{ "name": "Billede og tekst" }]
+}
+{% endschema %}
