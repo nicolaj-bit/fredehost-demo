@@ -5,6 +5,10 @@
   inline-script følger med. three.js (≈ 650 kB) og engraver.js hentes først
   med import(), når kunden åbner modalen. Der er bevidst ingen prefetch.
 
+  three.js hentes fra jsDelivr (fastlåst til r160), fordi Shopifys
+  themeFilesUpsert ikke vil hente filen fra en URL i dev store'en, og den er
+  for stor til at sende som tekst. Kan flyttes til assets/ med Shopify CLI.
+
   Ikke bygget endnu (kommer, hvis aftalen lander): linjeegenskaber på
   kurvlinjen, upload af forhåndsvisningen og produktionsdata på ordren.
   «Gem og læg i kurv» gemmer kun graveringen lokalt på siden.
@@ -22,7 +26,7 @@
 
 <dialog class="engraver" aria-labelledby="engraver-title" data-engraver
   data-engraver-src="{{ 'engraver.js' | asset_url }}"
-  data-three-src="{{ 'three.module.min.js' | asset_url }}">
+  data-three-src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.min.js">
   <div class="engraver__stage" data-stage>
     <canvas class="engraver__canvas" data-canvas aria-label="3D-visning af bægeret med graveringen i bunden" role="img"></canvas>
     <p class="engraver__loading" data-loading>Henter 3D-visning …</p>

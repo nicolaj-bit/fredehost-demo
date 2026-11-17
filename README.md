@@ -27,8 +27,10 @@ fredehost.dk i Google.
 
 ## 3D-visningen
 
-`assets/engraver.js` + `assets/three.module.min.js` (three r160). Begge
-hentes med `import()` først, når modalen åbnes. Produktsiden får kun markup og
+`assets/engraver.js` + three r160 fra jsDelivr. Begge hentes med `import()`
+først, når modalen åbnes. three.js ligger ikke i `assets/`, fordi Shopifys
+API ikke vil hente filen fra en URL i dev store'en, og den er for stor til at
+sende som tekst. Den kan flyttes ind med Shopify CLI senere. Produktsiden får kun markup og
 et lille `type="module" async`-script, der ikke venter på stylesheets.
 
 Modellen: 15,5 cm høj, 9 cm i diameter. Kroppen er tolv flade staver med
@@ -49,3 +51,22 @@ npm run perf
 
 `scripts/preview.mjs` efterligner kun den del af Shopifys Liquid, temaet
 bruger. Det er til skærmbilleder og måling, ikke til drift.
+
+## Dev store
+
+Temaet ligger som det **upublicerede** tema «Frede Høst demo (dev)» i
+`frede-host-demo.myshopify.com`. Det live tema er stadig Horizon.
+Forhåndsvis med `?preview_theme_id=210941542732`.
+
+`templates/product.uden-3d.json` er samme produktside uden graveringsmodulet
+og bruges kun til at sammenligne ydelse:
+
+```bash
+FH_PASSWORD=… FH_THEME=210941542732 node scripts/perf-store.mjs
+```
+
+Kodeordet står ikke i repoet.
+
+Horizons filer ligger stadig i temaet (API'et må ikke slette temafiler). De
+bruges ikke. Horizons skabeloner og sektionsgrupper er overskrevet, så de ikke
+kolliderer.
