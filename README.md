@@ -27,6 +27,13 @@ fredehost.dk (`assets/fh-lounge-*.webp`).
 npm run preview -- --mood lounge --index index.lounge --out dist-lounge
 ```
 
+I dev store'en ligger lounge som sit eget upublicerede tema, «Frede Høst –
+Lounge (dev)» (`?preview_theme_id=210973819212`). Det er samme kode; forskellen
+er `settings_data.json` (`"mood": "lounge"`) og at `templates/index.json` dér
+har indholdet fra `index.lounge.json`. Fotoene ligger i butikkens Filer som
+`fh-lounge-*.jpg` og er hentet fra fredehost.dk. Lounge-stilarterne ligger i
+`assets/lounge.css` og hentes kun, når udtrykket er lounge.
+
 ## Ikke til søgemaskiner
 
 - Kodeord på butikken.

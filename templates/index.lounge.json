@@ -13,34 +13,87 @@
         "asset": "lounge-hero",
         "alt": "Frede Høst i en træstol med et raflebæger i hånden",
         "focal": "62% 12%",
-        "focal_mobile": "64% 18%"
+        "focal_mobile": "64% 18%",
+        "image": "shopify://shop_images/fh-lounge-hero.jpg"
       }
     },
     "statement": {
       "type": "fh-statement",
-      "settings": { "text": "Tolv trædele, foret med filt. Et kast, der lyder af kvalitet – ikke af larm." }
+      "settings": {
+        "text": "Tolv trædele, foret med filt. Et kast, der lyder af kvalitet – ikke af larm."
+      }
     },
     "duo": {
       "type": "fh-duo",
       "blocks": {
-        "a": { "type": "image", "settings": { "asset": "lounge-black", "alt": "Hånd der løfter et mørkt raflebæger med blå terninger i bundstykket", "caption": "Bundstykket holder på terningerne." } },
-        "b": { "type": "image", "settings": { "asset": "lounge-chair", "alt": "Tre raflebægre på et bord foran en flettet designerstol", "caption": "Til stuen, sommerhuset og spillebordet." } }
+        "a": {
+          "type": "image",
+          "settings": {
+            "asset": "lounge-black",
+            "alt": "Hånd der løfter et mørkt raflebæger med blå terninger i bundstykket",
+            "caption": "Bundstykket holder på terningerne.",
+            "image": "shopify://shop_images/fh-lounge-black.jpg"
+          }
+        },
+        "b": {
+          "type": "image",
+          "settings": {
+            "asset": "lounge-chair",
+            "alt": "Tre raflebægre på et bord foran en flettet designerstol",
+            "caption": "Til stuen, sommerhuset og spillebordet.",
+            "image": "shopify://shop_images/fh-lounge-chair.jpg"
+          }
+        }
       },
-      "block_order": ["a", "b"]
+      "block_order": [
+        "a",
+        "b"
+      ]
     },
     "features": {
       "type": "fh-features",
-      "settings": { "eyebrow": "Raflebægeret", "heading": "Bygget til <em>mange</em> aftener" },
-      "blocks": {
-        "f1": { "type": "feature", "settings": { "title": "Formet til hånden", "text": "En tidløs silhuet af tolv sammenføjede trædele, formet så den hviler naturligt i hånden." } },
-        "f2": { "type": "feature", "settings": { "title": "Foret med filt", "text": "Tæt, mørk filt tager lyden af terningerne. Tilbage er en blød, dæmpet rumlen." } },
-        "f3": { "type": "feature", "settings": { "title": "Todelt bund", "text": "Et elegant bundstykke holder på terningerne, så de bliver på bordet og ikke ender på gulvet." } }
+      "settings": {
+        "eyebrow": "Raflebægeret",
+        "heading": "Bygget til <em>mange</em> aftener"
       },
-      "block_order": ["f1", "f2", "f3"]
+      "blocks": {
+        "f1": {
+          "type": "feature",
+          "settings": {
+            "title": "Formet til hånden",
+            "text": "En tidløs silhuet af tolv sammenføjede trædele, formet så den hviler naturligt i hånden."
+          }
+        },
+        "f2": {
+          "type": "feature",
+          "settings": {
+            "title": "Foret med filt",
+            "text": "Tæt, mørk filt tager lyden af terningerne. Tilbage er en blød, dæmpet rumlen."
+          }
+        },
+        "f3": {
+          "type": "feature",
+          "settings": {
+            "title": "Todelt bund",
+            "text": "Et elegant bundstykke holder på terningerne, så de bliver på bordet og ikke ender på gulvet."
+          }
+        }
+      },
+      "block_order": [
+        "f1",
+        "f2",
+        "f3"
+      ]
     },
     "band": {
       "type": "fh-band",
-      "settings": { "quote": "Spillet er det samme. Bægeret er ikke.", "asset": "lounge-band", "alt": "Et raflebæger holdt op mod kameraet foran en mand i halvmørke", "focal": "40% 40%" }
+      "settings": {
+        "quote": "Spillet er det samme. Bægeret er ikke.",
+        "asset": "lounge-band",
+        "alt": "Et raflebæger holdt op mod kameraet foran en mand i halvmørke",
+        "focal": "40% 40%",
+        "image": "shopify://shop_images/fh-lounge-band.jpg"
+      }
     },
     "collection": {
       "type": "fh-collection",
@@ -50,13 +103,55 @@
         "text": "Alle raflebægre er dansk design siden 1995 og leveres med seks terninger i en bomuldspose."
       },
       "blocks": {
-        "anny": { "type": "cup", "settings": { "name": "ANNY", "wood": "Olieret eg", "price": "899 kr." } },
-        "erik": { "type": "cup", "settings": { "name": "ERIK", "wood": "Olieret mahogni", "price": "" } },
-        "tove": { "type": "cup", "settings": { "name": "TOVE", "wood": "Olieret wenge og eg", "price": "999 kr.", "url": "/products/tove" } },
-        "knud": { "type": "cup", "settings": { "name": "KNUD", "wood": "Olieret valnød", "price": "1.099 kr." } },
-        "poul": { "type": "cup", "settings": { "name": "POUL", "wood": "Hvidolieret eg", "price": "" } }
+        "anny": {
+          "type": "cup",
+          "settings": {
+            "name": "ANNY",
+            "wood": "Olieret eg",
+            "price": "899 kr."
+          }
+        },
+        "erik": {
+          "type": "cup",
+          "settings": {
+            "name": "ERIK",
+            "wood": "Olieret mahogni",
+            "price": ""
+          }
+        },
+        "tove": {
+          "type": "cup",
+          "settings": {
+            "name": "TOVE",
+            "wood": "Olieret wenge og eg",
+            "price": "999 kr.",
+            "url": "/products/tove"
+          }
+        },
+        "knud": {
+          "type": "cup",
+          "settings": {
+            "name": "KNUD",
+            "wood": "Olieret valnød",
+            "price": "1.099 kr."
+          }
+        },
+        "poul": {
+          "type": "cup",
+          "settings": {
+            "name": "POUL",
+            "wood": "Hvidolieret eg",
+            "price": ""
+          }
+        }
       },
-      "block_order": ["anny", "erik", "tove", "knud", "poul"]
+      "block_order": [
+        "anny",
+        "erik",
+        "tove",
+        "knud",
+        "poul"
+      ]
     },
     "engraving": {
       "type": "fh-split",
@@ -68,7 +163,8 @@
         "url": "/products/tove#gravering",
         "asset": "lounge-engrave",
         "alt": "Bunden af et mørkt raflebæger med graveringen «Tab og Vind – Familien Høst»",
-        "reverse": true
+        "reverse": true,
+        "image": "shopify://shop_images/fh-lounge-engrave.jpg"
       }
     },
     "story": {
@@ -80,12 +176,52 @@
         "text": "<p>Raflebægeret begyndte i kælderen i Fredes barndomshjem. Fredes far, Erik, var en mester i trædrejning og havde i årevis lavet træfigurer med en præcision og omhu, der kom til at præge Frede dybt.</p>"
       },
       "blocks": {
-        "a": { "type": "image", "settings": { "asset": "lounge-craft1", "alt": "Erik Høst ved arbejdsbænken i værkstedet", "year": "1995", "caption": "Far og søn i kælderen" } },
-        "b": { "type": "image", "settings": { "asset": "lounge-craft2", "alt": "Trædrejning på drejebænken", "year": "Drejet", "caption": "Formen skabes på drejebænken" } },
-        "c": { "type": "image", "settings": { "asset": "lounge-craft3", "alt": "Træ forberedes i værkstedet", "year": "Danmark", "caption": "Produceret i Danmark" } }
+        "a": {
+          "type": "image",
+          "settings": {
+            "asset": "lounge-craft1",
+            "alt": "Erik Høst ved arbejdsbænken i værkstedet",
+            "year": "1995",
+            "caption": "Far og søn i kælderen",
+            "image": "shopify://shop_images/fh-lounge-craft1.jpg"
+          }
+        },
+        "b": {
+          "type": "image",
+          "settings": {
+            "asset": "lounge-craft2",
+            "alt": "Trædrejning på drejebænken",
+            "year": "Drejet",
+            "caption": "Formen skabes på drejebænken",
+            "image": "shopify://shop_images/fh-lounge-craft2.jpg"
+          }
+        },
+        "c": {
+          "type": "image",
+          "settings": {
+            "asset": "lounge-craft3",
+            "alt": "Træ forberedes i værkstedet",
+            "year": "Danmark",
+            "caption": "Produceret i Danmark",
+            "image": "shopify://shop_images/fh-lounge-craft3.jpg"
+          }
+        }
       },
-      "block_order": ["a", "b", "c"]
+      "block_order": [
+        "a",
+        "b",
+        "c"
+      ]
     }
   },
-  "order": ["hero", "statement", "duo", "features", "band", "collection", "engraving", "story"]
+  "order": [
+    "hero",
+    "statement",
+    "duo",
+    "features",
+    "band",
+    "collection",
+    "engraving",
+    "story"
+  ]
 }

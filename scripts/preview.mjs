@@ -41,11 +41,13 @@ async function renderSection(type, data, ctx) {
   let src = fs.readFileSync(file, 'utf8');
   if (noEngraver) src = src.replace(/{%-?\s*render 'engraver-modal'[^%]*-?%}/, '');
   const schema = readSchema(src);
-  const settings = { ...defaults(schema.settings), ...(data.settings || {}) };
+  // Billedvalg fra butikken (shopify://shop_images/…) findes ikke lokalt: brug temaets egne fotos.
+  const local = (o) => Object.fromEntries(Object.entries(o).map(([k, v]) => [k, typeof v === 'string' && v.startsWith('shopify://') ? '' : v]));
+  const settings = local({ ...defaults(schema.settings), ...(data.settings || {}) });
   const blocks = (data.block_order || []).map((id) => {
     const b = data.blocks[id];
     const bs = (schema.blocks || []).find((x) => x.type === b.type) || {};
-    return { id, type: b.type, settings: { ...defaults(bs.settings), ...b.settings }, shopify_attributes: '' };
+    return { id, type: b.type, settings: local({ ...defaults(bs.settings), ...b.settings }), shopify_attributes: '' };
   });
   const html = await engine.parseAndRender(src, { ...ctx, section: { id: type, settings, blocks } });
   return `<div id="shopify-section-${type}" class="shopify-section">${html}</div>`;

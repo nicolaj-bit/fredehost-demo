@@ -1,0 +1,83 @@
+/* ------------------------------------------------------------------
+   Lounge: mørkt, varmt udtryk. Slås til med indstillingen «Udtryk».
+   Cognac, valnød og messing; aftenlys og dybe skygger.
+------------------------------------------------------------------ */
+[data-mood="lounge"] {
+  --paper: #13100d;
+  --paper-2: #1d1814;
+  --ink: #efe5d5;
+  --muted: #a6977f;
+  --line: rgba(239, 229, 213, 0.14);
+  --oak: #c99257;
+  --brass: #c9a46a;
+  color-scheme: dark;
+}
+[data-mood="lounge"] .lead,
+[data-mood="lounge"] .prose,
+[data-mood="lounge"] .site-nav a { color: #d8ccb9; }
+[data-mood="lounge"] .announce { background: #0b0907; color: var(--muted); border-bottom: 1px solid var(--line); }
+[data-mood="lounge"] .site-header { background: var(--paper); }
+[data-mood="lounge"] .wordmark { letter-spacing: 0.38em; }
+[data-mood="lounge"] .eyebrow { color: var(--brass); }
+[data-mood="lounge"] .display-xl em,
+[data-mood="lounge"] .display-l em,
+[data-mood="lounge"] .display-m em { font-style: italic; color: var(--oak); }
+[data-mood="lounge"] .btn--solid { background: var(--ink); color: #13100d; border-color: var(--ink); }
+[data-mood="lounge"] .btn--solid:hover { background: #fff; border-color: #fff; }
+[data-mood="lounge"] .btn--line { border-color: rgba(239, 229, 213, 0.5); }
+[data-mood="lounge"] .btn--line:hover { background: var(--ink); color: #13100d; }
+[data-mood="lounge"] .feature { border-top-color: var(--brass); }
+[data-mood="lounge"] .collection__name { color: var(--ink); }
+[data-mood="lounge"] .engrave-cta { background: #1d1814; border: 1px solid var(--line); }
+[data-mood="lounge"] .product__shot, [data-mood="lounge"] .split__media, [data-mood="lounge"] .duo__item { background: #1d1814; }
+[data-mood="lounge"] .engraver { background: #17130f; }
+[data-mood="lounge"] .engraver__stage { background: radial-gradient(110% 90% at 50% 38%, #3a2d22 0%, #1a1511 62%, #0e0b09 100%); }
+[data-mood="lounge"] .engraver__reset { background: rgba(20, 16, 13, .6); color: var(--ink); }
+[data-mood="lounge"] .field input[type=text], [data-mood="lounge"] .field input:not([type]),
+[data-mood="lounge"] .password__form input { background: #0f0c0a; color: var(--ink); border-color: rgba(239, 229, 213, .22); }
+[data-mood="lounge"] .field input:focus { border-color: var(--brass); }
+[data-mood="lounge"] .field--choice label { border-color: rgba(239, 229, 213, .22); }
+[data-mood="lounge"] .field--choice label:has(input:checked) { background: #0f0c0a; border-color: var(--brass); }
+[data-mood="lounge"] .field--choice input { accent-color: var(--brass); }
+[data-mood="lounge"] .engraver__close { background: none; }
+[data-mood="lounge"] .site-footer { background: #0b0907; margin-top: var(--section); }
+
+/* Hero med fuldt billede */
+.hero-full { position: relative; min-height: min(94vh, 1000px); display: grid; align-items: end; color: #f3eadc; background: #0b0907; overflow: hidden; isolation: isolate; }
+.hero-full__media { position: absolute; inset: 0; z-index: -2; }
+.hero-full__media .cover { position: absolute; inset: 0; object-position: var(--focal); }
+.hero-full__shade { position: absolute; inset: 0; z-index: -1;
+  background:
+    linear-gradient(90deg, rgba(11, 9, 7, .92) 0%, rgba(11, 9, 7, .62) 34%, rgba(11, 9, 7, 0) 62%),
+    linear-gradient(0deg, rgba(11, 9, 7, .85) 0%, rgba(11, 9, 7, 0) 38%); }
+.hero-full__inner { padding-block: clamp(96px, 14vw, 180px) clamp(56px, 8vw, 112px); }
+.hero-full__text { max-width: 600px; display: flex; flex-direction: column; gap: 26px; }
+.hero-full__text .eyebrow { margin: 0; color: var(--brass, #c9a46a); }
+.hero-full .lead { color: #ddd1be; }
+.hero-full .display-xl { font-size: clamp(48px, 7.4vw, 120px); line-height: .95; }
+
+/* Bredt billede med citat */
+.band { position: relative; height: min(78vh, 760px); margin-top: var(--section); overflow: hidden; isolation: isolate; background: #0b0907; }
+.band > img { position: absolute; inset: 0; object-position: var(--focal); z-index: -2; }
+.band__shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, rgba(11, 9, 7, .88) 0%, rgba(11, 9, 7, .1) 55%); }
+.band__inner { position: absolute; left: 0; right: 0; bottom: clamp(32px, 6vw, 80px); margin-inline: auto; }
+.band__quote { max-width: 20ch; color: #f3eadc; }
+
+/* Tre billeder */
+.triptych { padding-top: var(--section); }
+.triptych__head { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 5vw, 96px); align-items: end; margin-bottom: clamp(36px, 5vw, 64px); }
+.triptych__head .eyebrow { grid-column: 1 / -1; margin-bottom: -8px; }
+.triptych__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.triptych__img { aspect-ratio: 4 / 5; position: relative; overflow: hidden; background: var(--paper-2); }
+.triptych__img .cover { position: absolute; inset: 0; filter: saturate(.85) contrast(1.05); }
+.triptych figcaption { margin-top: 14px; font-size: 14px; color: var(--muted); }
+.triptych figcaption span { display: block; font: 300 28px/1.1 var(--serif); color: var(--ink); margin-bottom: 4px; }
+
+@media (max-width: 899px) {
+  .hero-full { min-height: 92svh; }
+  .hero-full__media .cover { object-position: var(--focal-m, var(--focal)); }
+  .hero-full__shade { background: linear-gradient(0deg, rgba(11, 9, 7, .95) 0%, rgba(11, 9, 7, .7) 42%, rgba(11, 9, 7, .05) 75%); }
+  .band { height: 72svh; }
+  .triptych__head { grid-template-columns: 1fr; }
+  .triptych__grid { grid-template-columns: 1fr; gap: 32px; }
+}
