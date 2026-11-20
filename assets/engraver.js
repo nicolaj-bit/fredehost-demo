@@ -580,7 +580,11 @@ export async function mount(canvasEl, threeSrc, opts = {}) {
     if (target) {
       yaw += (target.yaw - yaw) * 0.12;
       pitch += (target.pitch - pitch) * 0.12;
-      if (Math.abs(target.yaw - yaw) < 1e-3 && Math.abs(target.pitch - pitch) < 1e-3) target = null;
+      if (Math.abs(target.yaw - yaw) < 1e-3 && Math.abs(target.pitch - pitch) < 1e-3) {
+        // land præcist, så «Vis bunden» altid ender i samme stilling
+        yaw = target.yaw; pitch = target.pitch;
+        target = null;
+      }
       moving = true;
     }
     pivot.rotation.x = pitch;
@@ -692,5 +696,6 @@ function flatView(canvasEl, px) {
     ctx.restore();
   });
   setText({ line1: '', line2: '', font: 'serif' });
-  return { setText, reset() {}, pause() {}, resume() {} };
+  // flat: true fortæller modalen, at der ikke er noget at dreje
+  return { flat: true, setText, reset() {}, pause() {}, resume() {} };
 }

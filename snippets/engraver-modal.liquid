@@ -109,6 +109,11 @@
         .then(function (v) {
           view = v;
           root.classList.add('is-ready');
+          if (v.flat) {
+            // Uden 3D vises bunden fladt: skjul det, der hører til drejningen
+            root.querySelector('.engraver__hint').hidden = true;
+            root.querySelector('[data-reset]').hidden = true;
+          }
           render();
           if (!root.open) view.pause();   // lukket igen, før 3D nåede at blive klar
         })

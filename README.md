@@ -58,6 +58,10 @@ synlige limfuger, foden er drejet. Olieret eg med årer på langs af hver stav;
 bunden er endetræ med årringe. Graveringen er brændt, ikke præget: mørk farve og
 mere mat overflade, men ingen fordybning, og træets struktur anes igennem.
 
+Træets teksturer regnes ud i Web Workers, og ved tastetryk tegnes kun
+tekstfeltet i bunden om, så siden ikke fryser. Kan three.js ikke hentes, eller
+findes WebGL ikke, vises bunden fladt med samme gravering.
+
 ## Lokalt
 
 ```bash
@@ -83,6 +87,12 @@ og bruges kun til at sammenligne ydelse:
 
 ```bash
 FH_PASSWORD=… FH_THEME=210941542732 node scripts/perf-store.mjs
+```
+
+3D-graveringen testes i begge temaer, på computer og mobil, med:
+
+```bash
+FH_PASSWORD=… node scripts/test-engraver.mjs
 ```
 
 Kodeordet står ikke i repoet.
