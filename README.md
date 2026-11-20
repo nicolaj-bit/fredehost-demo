@@ -53,9 +53,11 @@ API ikke vil hente filen fra en URL i dev store'en, og den er for stor til at
 sende som tekst. Den kan flyttes ind med Shopify CLI senere. Produktsiden får kun markup og
 et lille `type="module" async`-script, der ikke venter på stylesheets.
 
-Modellen: 15,5 cm høj, 9 cm i diameter. Kroppen er tolv flade staver med
-synlige limfuger, foden er drejet. Olieret eg med årer på langs af hver stav;
-bunden er endetræ med årringe. Graveringen er brændt, ikke præget: mørk farve og
+Modellen: 15,5 cm høj, 9 cm i diameter. Bægeret er drejet rundt og har ingen
+kanter: de tolv stave ses som striber i træet (tydeligst på TOVE, hvor wenge og
+eg skifter). Omridset med den slanke fod er målt på Frede Høsts egne
+studiefotos. Olieret eg med årer på langs af hver stav; bunden er endetræ med
+årringe. Graveringen er brændt, ikke præget: mørk farve og
 mere mat overflade, men ingen fordybning, og træets struktur anes igennem.
 
 Træets teksturer regnes ud i Web Workers, og ved tastetryk tegnes kun
@@ -94,6 +96,9 @@ FH_PASSWORD=… FH_THEME=210941542732 node scripts/perf-store.mjs
 ```bash
 FH_PASSWORD=… node scripts/test-engraver.mjs
 ```
+
+Uden grafikkort tager testen 4–5 minutter pr. tema. Kør ét tema ad gangen med
+`FH_THEMES=210973819212` eller `FH_THEMES=210941542732`.
 
 Kodeordet står ikke i repoet.
 

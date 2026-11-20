@@ -14,7 +14,8 @@ const { chromium, devices } = createRequire(import.meta.url)('playwright');   //
 const BASE = 'https://frede-host-demo.myshopify.com';
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.min.js';
 const THEMES = (process.env.FH_THEMES || '210973819212,210941542732').split(',');
-const DEVICES = [['computer', { viewport: { width: 1440, height: 900 } }], ['mobil', devices['iPhone 13']]];
+// Mobil testes i enkelt opløsning: uden grafikkort tager hvert billede ellers flere sekunder.
+const DEVICES = [['computer', { viewport: { width: 1440, height: 900 } }], ['mobil', { ...devices['iPhone 13'], deviceScaleFactor: 1 }]];
 const three = process.env.THREE_FILE ? fs.readFileSync(process.env.THREE_FILE) : null;
 const md5 = (buf) => crypto.createHash('md5').update(buf).digest('hex');
 
@@ -44,12 +45,22 @@ async function open(opts, theme, { blockThree = false } = {}) {
     new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__lt.push(Math.round(e.duration)); }).observe({ type: 'longtask', buffered: true });
   });
   const page = await ctx.newPage();
+  // Kun fejl fra produktsiden tæller: kodeordssiden og siden lige efter login
+  // vises af butikkens live tema, ikke af demo-temaet.
   const errors = [];
-  page.on('pageerror', (e) => errors.push(e.message.slice(0, 140)));
-  await page.goto(BASE + '/password', { waitUntil: 'domcontentloaded' });
-  await page.fill('input[type=password]', process.env.FH_PASSWORD);
-  await Promise.all([page.waitForNavigation().catch(() => {}), page.press('input[type=password]', 'Enter')]);
-  await page.goto(`${BASE}/products/tove?preview_theme_id=${theme}`, { waitUntil: 'networkidle' });
+  page.on('pageerror', (e) => { if (page.url().includes('/products/')) errors.push(e.message.slice(0, 140)); });
+  for (let attempt = 1; ; attempt++) {
+    await page.goto(BASE + '/password', { waitUntil: 'domcontentloaded' });
+    if (await page.locator('input[type=password]').count()) {
+      await page.fill('input[type=password]', process.env.FH_PASSWORD);
+      await Promise.all([page.waitForNavigation().catch(() => {}), page.press('input[type=password]', 'Enter')]);
+    }
+    await page.goto(`${BASE}/products/tove?preview_theme_id=${theme}`, { waitUntil: 'networkidle' });
+    if (await page.locator('[data-engraver]').count()) break;
+    // butikken svarer af og til med en anden side lige efter mange forespørgsler: prøv én gang til
+    if (attempt === 2) throw new Error(`Produktsiden blev ikke vist (${page.url()} – «${await page.title()}»)`);
+    await page.waitForTimeout(4000);
+  }
   return { ctx, page, errors };
 }
 
@@ -85,8 +96,11 @@ for (const theme of THEMES) {
     check('teksten står i ordreoversigten', (await page.textContent('[data-order=text]')) === '«Familien Høst»');
 
     const canvas = page.locator('[data-canvas]');
-    // vent, til billedet står stille, og giv så dets fingeraftryk
+    // Vent, til billedet står stille, og giv så dets fingeraftryk. Fokus fjernes
+    // først, så tastaturets fokusramme og hjælpetekst ikke tæller med: det er
+    // bægerets stilling, der sammenlignes.
     const settle = async () => {
+      await page.evaluate(() => document.activeElement && document.activeElement.blur());
       let prev = '', cur = md5(await canvas.screenshot());
       for (let i = 0; i < 40 && cur !== prev; i++) { await page.waitForTimeout(250); prev = cur; cur = md5(await canvas.screenshot()); }
       return cur;
@@ -95,8 +109,10 @@ for (const theme of THEMES) {
     await canvas.focus();
     for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowRight');
     for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown');
+    check('tastaturfokus viser, at piletasterne kan bruges', (await page.evaluate(() => getComputedStyle(document.querySelector('.engraver__hint'), '::after').content)).includes('piletasterne'));
     const turned = await settle();
     check('piletaster drejer bægeret', turned !== start);
+    await canvas.focus();
     await page.keyboard.press('Home');
     check('Home viser bunden i startstillingen', (await settle()) === start);
     const box = await canvas.boundingBox();

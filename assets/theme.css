@@ -168,10 +168,14 @@ a.collection__row:hover .collection__name { color: var(--oak); }
 .engraver__stage { position: relative; background: radial-gradient(120% 90% at 50% 40%, #f7f3ed 0%, #e6dfd3 70%, #ddd5c7 100%); min-height: 0; }
 .engraver__canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
 .engraver__canvas:active { cursor: grabbing; }
+/* Tastaturfokus: rammen ligger inden for billedet, så modalens kant ikke klipper den,
+   og teksten nævner piletasterne. På telefon ses kun «Træk for at dreje». */
+.engraver__canvas:focus-visible { outline-offset: -8px; }
+.engraver__canvas:focus-visible ~ .engraver__hint::after { content: " eller brug piletasterne"; }
 .engraver__flat { position: absolute; inset: 10%; width: 80%; height: 80%; object-fit: contain; }
 .engraver__loading { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 14px; }
 .engraver.is-ready .engraver__loading { display: none; }
-.engraver__hint { position: absolute; left: 24px; bottom: 20px; font-size: 13px; color: var(--muted); pointer-events: none; }
+.engraver__hint { position: absolute; left: 24px; right: 150px; bottom: 20px; font-size: 13px; color: var(--muted); pointer-events: none; }
 .engraver__reset { position: absolute; right: 20px; bottom: 14px; border: 1px solid var(--line); background: rgba(255,255,255,.55); border-radius: 999px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
 .engraver__panel { position: relative; overflow-y: auto; padding: 48px 40px 32px; display: flex; flex-direction: column; gap: 18px; border-left: 1px solid var(--line); }
 .engraver__panel .eyebrow { margin: 0; }

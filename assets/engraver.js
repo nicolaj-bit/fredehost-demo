@@ -5,8 +5,9 @@
   three.js hentes herfra med import(), så intet af det belaster produktsiden.
 
   Mål (cm), fra fredehost.dk: højde 15,5, diameter 9.
-  Bægeret består af tolv trædele: kroppen er en tolvkantet, keglestubformet
-  krop med flade sider og synlige limfuger. Foden er drejet i ét stykke.
+  Bægeret består af tolv trædele, limet sammen og drejet rundt: kroppen er en
+  glat keglestub uden kanter, hvor stavene ses som striber i træet. Foden er
+  drejet i ét stykke. Omridset er målt på Frede Høsts egne studiefotos.
   Træet er olieret eg med årer, der løber på langs af hver stav, og
   marvstråler. TOVE har skiftevis staver af wenge og eg. Foden er eg på
   begge. Bunden er endetræ med årringe fra to sammenlimede emner.
@@ -20,9 +21,13 @@
 
 const H = 15.5;          // samlet højde
 const R_MAX = 4.5;       // største radius (diameter 9 cm)
+const R_TOP = 3.03;      // radius på den flade top
 const STAVES = 12;
-const SEAM_Y = 7.2;      // samlingen mellem fod og krop
-const FOOT_R = 3.2;      // radius på den flade bund under foden
+const ANGLE0 = Math.PI / STAVES;   // drejning, så en stav vender lige mod beskueren
+const SEGMENTS = 144;    // led rundt om bægeret: nok til, at omridset er helt rundt
+const SEAM_Y = 7.1;      // samlingen mellem bundstykke og bæger
+const SEAM_GAP = 0.03;   // samlingen ses som en tynd, mørk linje
+const FOOT_R = 3.05;     // radius på den flade bund under foden
 const PITCH0 = -1.1;     // startvinkel: vippet, så bunden ses med det samme
 const YAW0 = 0.24;
 const PITCH_MIN = -1.75, PITCH_MAX = 0.35;
@@ -112,7 +117,8 @@ function generate(job) {
     d[i4 + 3] = 255;
   };
 
-  // Tolv staver side om side med en tynd, mørk limfuge i kanten.
+  // Tolv staver side om side. Bægeret er drejet rundt, så samlingerne ses som
+  // skift i årer og tone, ikke som kanter.
   if (job.kind === 'stave') {
     const W = 1536, Hh = 1024, sw = W / STAVES;
     const out = image(W, Hh), d = out.data, staves = staveParams(job.wood);
@@ -120,7 +126,6 @@ function generate(job) {
       for (let x = 0; x < W; x++) {
         const si = Math.floor(x / sw), s = staves[si];
         const lx = x - si * sw;               // px inde i staven
-        const edge = Math.min(lx, sw - 1 - lx);
         let g, shade;
         if (s.wenge) {
           // wenge: tætte, lige striber med lidt bølge; ingen marvstråler
@@ -129,7 +134,6 @@ function generate(job) {
           shade = f < 0.42 ? 1.18 + 0.18 * Math.sin(f * 7.4) : 0.72 - 0.12 * f;
           if (hash2(Math.floor(g), Math.floor(y / 9) + si * 999) > 0.9) shade *= 0.6;   // lange porer
           shade += (hash2(x, y) - 0.5) * 0.12;
-          if (edge < 1.6) shade *= 0.6;
           put(d, (y * W + x) * 4, WENGE, shade * s.tone, 0);
           continue;
         }
@@ -150,9 +154,8 @@ function generate(job) {
         // marvstråler: korte lyse flager på tværs af årerne (kvartersavet eg)
         if (s.quarter && hash2(Math.floor(lx / 11) + si * 77, Math.floor(y / 3)) > 0.992) shade += 0.12;
         shade += (hash2(x, y) - 0.5) * 0.05;      // fin fiberstøj
-        // let mørkere mod kanterne og en tynd limfuge
-        if (edge < 1.6) shade *= 0.45;
-        else if (edge < 6) shade *= 0.93 + edge * 0.012;
+        // en ganske fin limfuge mellem to egestave
+        if (lx < 1 || lx >= sw - 1) shade *= 0.82;
         put(d, (y * W + x) * 4, OAK, shade * s.tone, s.warm);
       }
     }
@@ -176,10 +179,10 @@ function generate(job) {
     return out;
   }
 
-  // Toppen: yderst stavenes endetræ i tolv felter, inderst en drejet skive.
+  // Toppen: låget i midten og stavenes endetræ som en smal ring yderst.
   if (job.kind === 'top') {
     const S = 768, out = image(S, S), d = out.data, staves = staveParams(job.wood);
-    const inner = 0.74, tau = Math.PI * 2;
+    const inner = 0.915, tau = Math.PI * 2;
     for (let y = 0; y < S; y++) {
       for (let x = 0; x < S; x++) {
         const px = (x / S) * 2 - 1, py = 1 - (y / S) * 2;
@@ -196,7 +199,7 @@ function generate(job) {
           shade = (0.86 - 0.12 * (ring - Math.floor(ring))) * s.tone * (s.wenge ? 1.2 : 1);
           if (hash2(x, y) > 0.86) shade -= 0.1;          // endetræets porer
           const edgePx = Math.min(fs, 1 - fs) * rho * S * Math.PI / STAVES;
-          if (edgePx < 1.3) shade *= 0.45;               // limfuge mellem stavene
+          if (edgePx < 1.3) shade *= 0.8;                // fin limfuge mellem stavene
         } else {
           // drejet skive med lige årer
           const g = (px * 0.94 + py * 0.34) * 260;
@@ -249,7 +252,7 @@ function textures(wood) {
   const jobs = {
     stave: { kind: 'stave', wood },
     foot: { kind: 'foot' },
-    top: { kind: 'top', wood, angleOffset: Math.PI / STAVES },
+    top: { kind: 'top', wood, angleOffset: ANGLE0 },
     bottom: { kind: 'bottom', size: TEX },
   };
   let url = null;
@@ -403,63 +406,59 @@ function textUpdater(surface, after) {
 
 /* ---------- geometri ---------- */
 
-function staveGeometry(THREE, angleOffset) {
-  // ringe fra samlingen og op: [højde, radius til hjørnerne, v]
-  const levels = [
-    [SEAM_Y, 4.3, 0],
-    [SEAM_Y + 0.08, 4.38, 0.01],
-    [H - 0.17, 3.44, 0.985],
-    [H, 3.3, 1],
+// Omridset er målt på Frede Høsts studiefotos og skaleret til 15,5 × 9 cm.
+// Alle dele er drejet rundt om bægerets akse: der er ingen flader og kanter.
+const coneR = (y) => R_MAX - 0.1337 * (y - 5.38);   // keglens radius i højden y
+
+// Drejer et omrids af punkter [radius, højde] rundt. Lige stræk har et ekstra
+// punkt tæt på hver ende, så lyset ikke «bøjer» hen over dem.
+function lathe(THREE, profile) {
+  return new THREE.LatheGeometry(profile.map(([r, y]) => new THREE.Vector2(r, y)), SEGMENTS, Math.PI / 2 - ANGLE0);
+}
+
+// Bægeret: en glat keglestub fra samlingen og op, med en lille afrunding øverst.
+function bodyGeometry(THREE) {
+  const y0 = SEAM_Y, y1 = H - 0.12;
+  const round = [30, 60, 90].map((deg) => {
+    const a = (deg * Math.PI) / 180;
+    return [R_TOP + (coneR(y1) - R_TOP) * Math.cos(a), y1 + (H - y1) * Math.sin(a)];
+  });
+  const profile = [
+    [coneR(y0) - 0.02, y0], [coneR(y0 + 0.03), y0 + 0.03], [coneR(y0 + 0.25), y0 + 0.25],
+    [coneR(y1 - 0.25), y1 - 0.25], [coneR(y1), y1], ...round,
   ];
-  const pos = [], uv = [];
-  const step = (Math.PI * 2) / STAVES;
-  for (let i = 0; i < STAVES; i++) {
-    const a0 = angleOffset + i * step, a1 = a0 + step;
-    const u0 = i / STAVES + 0.0004, u1 = (i + 1) / STAVES - 0.0004;
-    for (let l = 0; l < levels.length - 1; l++) {
-      const [y0, r0, v0] = levels[l], [y1, r1, v1] = levels[l + 1];
-      const b0 = [r0 * Math.cos(a0), y0, r0 * Math.sin(a0)];
-      const b1 = [r0 * Math.cos(a1), y0, r0 * Math.sin(a1)];
-      const t0 = [r1 * Math.cos(a0), y1, r1 * Math.sin(a0)];
-      const t1 = [r1 * Math.cos(a1), y1, r1 * Math.sin(a1)];
-      pos.push(...b0, ...t0, ...b1, ...b1, ...t0, ...t1);
-      uv.push(u0, v0, u0, v1, u1, v0, u1, v0, u0, v1, u1, v1);
-    }
+  const g = lathe(THREE, profile);
+  // Stavenes tekstur: u løber rundt om bægeret, så hver stav fylder en tolvtedel
+  // hele vejen op; v går fra samlingen (0) til toppen (1).
+  const n = profile.length;
+  for (let i = 0; i <= SEGMENTS; i++) {
+    for (let j = 0; j < n; j++) g.attributes.uv.setXY(i * n + j, 1 - i / SEGMENTS, (profile[j][1] - y0) / (H - y0));
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  g.computeVertexNormals();   // ikke-delte hjørner giver flade facetter
   return g;
 }
 
-function topGeometry(THREE, angleOffset) {
-  const R = 3.3, pos = [], uv = [];
-  const step = (Math.PI * 2) / STAVES;
-  for (let i = 0; i < STAVES; i++) {
-    const a0 = angleOffset + i * step, a1 = a0 + step;
-    const v0 = [R * Math.cos(a0), H, R * Math.sin(a0)];
-    const v1 = [R * Math.cos(a1), H, R * Math.sin(a1)];
-    pos.push(0, H, 0, ...v1, ...v0);
-    const m = (p) => [p[0] / R / 2 + 0.5, -p[2] / R / 2 + 0.5];
-    uv.push(0.5, 0.5, ...m(v1), ...m(v0));
-  }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  g.computeVertexNormals();
-  return g;
+// Den flade top. Teksturen vender, så stavenes endetræ flugter med stavene.
+function topGeometry(THREE) {
+  return new THREE.CircleGeometry(R_TOP, SEGMENTS).rotateX(-Math.PI / 2).translate(0, H, 0);
 }
 
-function footGeometry(THREE) {
-  // profil [radius, højde] fra bunden og op til samlingen; drejet rundt
-  const p = [
-    [FOOT_R, 0], [3.33, 0.08], [3.38, 0.25], [3.38, 1.0], [3.3, 1.22],
-    [2.95, 1.42], [2.45, 1.72], [2.08, 2.12], [1.88, 2.65], [1.83, 3.15],
-    [1.9, 3.65], [2.15, 4.15], [2.6, 4.58], [3.3, 4.95], [4.0, 5.2],
-    [4.4, 5.36], [R_MAX, 5.5], [4.48, 6.0], [4.31, 7.12], [4.24, SEAM_Y], [3.9, SEAM_Y],
-  ].map(([r, y]) => new THREE.Vector2(r, y));
-  return new THREE.LatheGeometry(p, 128);
+// Bundstykket: fod, slank talje, skål og den brede ring op til samlingen.
+function baseGeometry(THREE) {
+  const top = SEAM_Y - SEAM_GAP;
+  return lathe(THREE, [
+    [FOOT_R, 0], [3.19, 0.05], [3.245, 0.18], [3.245, 0.3], [3.245, 0.85], [3.24, 0.93],
+    [3.22, 1.0], [3.13, 1.1], [2.99, 1.2], [2.85, 1.3], [2.58, 1.45], [2.3, 1.6], [1.98, 1.8],
+    [1.79, 2.0], [1.64, 2.2], [1.53, 2.4], [1.47, 2.6], [1.44, 2.8], [1.44, 3.0], [1.48, 3.2],
+    [1.53, 3.4], [1.65, 3.6], [1.79, 3.8], [2.01, 4.0], [2.4, 4.2], [2.88, 4.4], [3.46, 4.6],
+    [4.0, 4.8], [4.19, 4.9], [4.36, 5.0], [4.46, 5.1], [4.5, 5.22], [R_MAX, 5.38],
+    [coneR(5.6), 5.6], [coneR(top - 0.25), top - 0.25], [coneR(top - 0.03), top - 0.03], [coneR(top) - 0.02, top],
+  ]);
+}
+
+// Samlingen mellem bundstykke og bæger: en tynd, mørk linje hele vejen rundt.
+function seamGeometry(THREE) {
+  const r = coneR(SEAM_Y) - 0.03;
+  return new THREE.CylinderGeometry(r, r, SEAM_GAP + 0.04, SEGMENTS, 1, true).translate(0, SEAM_Y - SEAM_GAP / 2, 0);
 }
 
 // Et lille «rum» med bløde lyskasser, så den olierede overflade får
@@ -531,11 +530,11 @@ export async function mount(canvasEl, threeSrc, opts = {}) {
     roughness: 0.55, clearcoat: 0.16, clearcoatRoughness: 0.6,
   });
 
-  const angleOffset = Math.PI / STAVES;   // en flade lige mod beskueren
   const model = new THREE.Group();
-  model.add(new THREE.Mesh(staveGeometry(THREE, angleOffset), oiled(tex(toCanvas(px.stave)))));
-  model.add(new THREE.Mesh(topGeometry(THREE, angleOffset), oiled(tex(toCanvas(px.top)))));
-  model.add(new THREE.Mesh(footGeometry(THREE), oiled(tex(toCanvas(px.foot), true))));
+  model.add(new THREE.Mesh(bodyGeometry(THREE), oiled(tex(toCanvas(px.stave)))));
+  model.add(new THREE.Mesh(topGeometry(THREE), oiled(tex(toCanvas(px.top)))));
+  model.add(new THREE.Mesh(baseGeometry(THREE), oiled(tex(toCanvas(px.foot), true))));
+  model.add(new THREE.Mesh(seamGeometry(THREE), new THREE.MeshBasicMaterial({ color: 0x24170e })));
 
   // Bunden med gravering
   const surface = bottomSurface(px.bottom);
@@ -555,7 +554,8 @@ export async function mount(canvasEl, threeSrc, opts = {}) {
   pivot.add(model);
   scene.add(pivot);
 
-  const camera = new THREE.PerspectiveCamera(28, 1, 1, 200);
+  // En lang brændvidde, som på et produktfoto, så formen ikke fortegnes.
+  const camera = new THREE.PerspectiveCamera(20, 1, 1, 300);
   const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let pitch = PITCH0, yaw = YAW0, vx = 0, vy = 0;
