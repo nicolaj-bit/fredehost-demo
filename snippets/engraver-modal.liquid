@@ -29,9 +29,9 @@
   data-engraver-src="{{ 'engraver.js' | asset_url }}"
   data-three-src="https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.min.js">
   <div class="engraver__stage" data-stage>
-    <canvas class="engraver__canvas" data-canvas aria-label="3D-visning af bægeret med graveringen i bunden" role="img"></canvas>
+    <canvas class="engraver__canvas" data-canvas aria-label="3D-visning af bægeret med graveringen i bunden. Drej med piletasterne." role="img"></canvas>
     <p class="engraver__loading" data-loading>Henter 3D-visning …</p>
-    <p class="engraver__hint">Træk for at dreje</p>
+    <p class="engraver__hint">Træk eller brug piletasterne for at dreje</p>
     <button type="button" class="engraver__reset" data-reset>Vis bunden</button>
   </div>
 
@@ -106,7 +106,12 @@
       if (loading) return loading;
       loading = import(root.dataset.engraverSrc)
         .then(function (m) { return m.mount(root.querySelector('[data-canvas]'), root.dataset.threeSrc, { wood: root.dataset.wood }); })
-        .then(function (v) { view = v; root.classList.add('is-ready'); render(); })
+        .then(function (v) {
+          view = v;
+          root.classList.add('is-ready');
+          render();
+          if (!root.open) view.pause();   // lukket igen, før 3D nåede at blive klar
+        })
         .catch(function (err) {
           console.error(err);
           root.querySelector('[data-loading]').textContent = '3D-visningen kunne ikke indlæses.';
@@ -117,7 +122,7 @@
     function open() {
       root.showModal();
       document.documentElement.classList.add('modal-open');
-      load();
+      if (view) view.resume(); else load();
       form.line1.focus({ preventScroll: true });
     }
     function close() { root.close(); }
@@ -130,7 +135,6 @@
       if (view) view.pause();
     });
     root.addEventListener('click', function (e) { if (e.target === root) close(); });
-    root.addEventListener('toggle', function () { if (root.open && view) view.resume(); });
     form.addEventListener('input', render);
     form.addEventListener('submit', function (e) {
       e.preventDefault();

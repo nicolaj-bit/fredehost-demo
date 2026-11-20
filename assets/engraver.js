@@ -12,6 +12,10 @@
   begge. Bunden er endetræ med årringe fra to sammenlimede emner.
   Graveringen er et lasermærke: brændt mørkt, men uden fordybning, så
   træets struktur stadig anes igennem.
+
+  Ydelse: Træets teksturer regnes ud i Web Workers, så siden ikke fryser,
+  mens modalen åbner. Når kunden skriver, tegnes kun tekstfeltet i bunden om,
+  ikke hele teksturen. Der renderes kun, når noget har ændret sig.
 */
 
 const H = 15.5;          // samlet højde
@@ -19,211 +23,199 @@ const R_MAX = 4.5;       // største radius (diameter 9 cm)
 const STAVES = 12;
 const SEAM_Y = 7.2;      // samlingen mellem fod og krop
 const FOOT_R = 3.2;      // radius på den flade bund under foden
-const PITCH0 = -1.1;    // startvinkel: vippet, så bunden ses med det samme
+const PITCH0 = -1.1;     // startvinkel: vippet, så bunden ses med det samme
 const YAW0 = 0.24;
+const PITCH_MIN = -1.75, PITCH_MAX = 0.35;
+const TEX = 1024;        // bundens tekstur i pixels
+
+// Felter i bundens tekstur (andele af siden). Kundens tekst og Frede Høsts
+// mærke ligger i hver sit felt, så de kan tegnes om uafhængigt af hinanden.
+const TEXT_BOX = { x: 0.12, y: 0.3, w: 0.76, h: 0.32 };
+const MARK_BOX = { x: 0.26, y: 0.67, w: 0.48, h: 0.17 };
+const ROUGH = 'rgb(0,140,0)';   // grøn kanal = ruhed (≈ 0,55) for olieret træ
 
 const FONTS = {
   serif: '500 {s}px Newsreader, Georgia, "Times New Roman", serif',
   sans: '500 {s}px Inter, "Helvetica Neue", Arial, sans-serif',
 };
+const MARK_FONT = FONTS.sans.replace('500', '600');
 
-/* ---------- små hjælpere ---------- */
-
-function rng(seed) {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-function hash2(x, y) {
-  let h = (x * 374761393 + y * 668265263) | 0;
-  h = Math.imul(h ^ (h >>> 13), 1274126177);
-  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
-}
-// glat 1D-støj (værdistøj med cosinus-interpolation)
-function noise1(seed) {
-  const r = rng(seed), n = 256, v = new Float32Array(n);
-  for (let i = 0; i < n; i++) v[i] = r() * 2 - 1;
-  return (x) => {
-    const i = Math.floor(x), f = x - i;
-    const a = v[((i % n) + n) % n], b = v[(((i + 1) % n) + n) % n];
-    const t = (1 - Math.cos(f * Math.PI)) / 2;
-    return a + (b - a) * t;
-  };
-}
+const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 function canvas(w, h) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   return c;
 }
-const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-
-// Olieret eg: varm, gylden brun. Lysere tidligved, mørkere senved.
-const OAK = [146, 100, 58];
-// Olieret wenge: næsten sort brun med lysere, smalle striber på langs.
-const WENGE = [46, 30, 22];
 
 /* ---------- teksturer ---------- */
 
-// Tolv staver side om side. Hver stav har sin egen tone og årestruktur, og
-// limfugen tegnes som en tynd mørk linje i kanten, så samlingerne ses.
-function staveTexture(wood) {
-  const W = 1536, Hh = 1024, sw = W / STAVES;
-  const c = canvas(W, Hh), ctx = c.getContext('2d');
-  const img = ctx.createImageData(W, Hh), d = img.data;
-  const r = rng(1995);
-  const staves = [];
-  for (let i = 0; i < STAVES; i++) {
-    const wenge = wood === 'wenge-eg' && i % 2 === 1;
-    staves.push({
-      wenge,
-      base: wenge ? WENGE : OAK,
-      tone: 0.9 + r() * 0.17,
-      warm: r() * 0.08 - 0.04,
-      quarter: i % 3 !== 1,          // to ud af tre er kvartersavet, resten har «katedral»-årer
-      spacing: 9 + r() * 7,
-      slant: (r() - 0.5) * 0.06,
-      cx: 0.3 + r() * 0.4,
-      arch: 0.004 + r() * 0.004,
-      off: r() * 1000,
-      wave: noise1(100 + i),
-    });
+// Regner én tekstur ud som rå pixels. VIGTIGT: funktionen sendes som tekst
+// til en Web Worker og må derfor ikke bruge noget uden for sig selv.
+function generate(job) {
+  const STAVES = 12;
+  const OAK = [146, 100, 58];     // olieret eg: varm, gylden brun
+  const WENGE = [46, 30, 22];     // olieret wenge: næsten sort brun
+  const clamp = (v) => (v < 0 ? 0 : v > 255 ? 255 : v);
+  function rng(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
   }
-  for (let y = 0; y < Hh; y++) {
-    for (let x = 0; x < W; x++) {
-      const si = Math.floor(x / sw), s = staves[si];
-      const lx = x - si * sw;               // px inde i staven
-      const u = lx / sw;
-      let g;
-      if (s.wenge) {
-        // wenge: tætte, lige striber med lidt bølge; ingen marvstråler
-        g = lx * 1.9 + s.slant * y + s.wave(y / 160 + s.off) * 4;
-        const f = (g / 7 + s.off) % 1;
-        let shade = f < 0.42 ? 1.18 + 0.18 * Math.sin(f * 7.4) : 0.72 - 0.12 * f;
-        if (hash2(Math.floor(g), Math.floor(y / 9) + si * 999) > 0.9) shade *= 0.6;   // lange porer
-        shade += (hash2(x, y) - 0.5) * 0.12;
+  function hash2(x, y) {
+    let h = (x * 374761393 + y * 668265263) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+  // glat 1D-støj (værdistøj med cosinus-interpolation)
+  function noise1(seed) {
+    const r = rng(seed), n = 256, v = new Float32Array(n);
+    for (let i = 0; i < n; i++) v[i] = r() * 2 - 1;
+    return (x) => {
+      const i = Math.floor(x), f = x - i;
+      const a = v[((i % n) + n) % n], b = v[(((i + 1) % n) + n) % n];
+      const t = (1 - Math.cos(f * Math.PI)) / 2;
+      return a + (b - a) * t;
+    };
+  }
+  // Hver stav har sin egen tone og årestruktur. Samme tal hver gang, så
+  // stavenes sider og deres endetræ i toppen passer sammen.
+  function staveParams(wood) {
+    const r = rng(1995), staves = [];
+    for (let i = 0; i < STAVES; i++) {
+      const wenge = wood === 'wenge-eg' && i % 2 === 1;
+      staves.push({
+        wenge,
+        base: wenge ? WENGE : OAK,
+        tone: 0.9 + r() * 0.17,
+        warm: r() * 0.08 - 0.04,
+        quarter: i % 3 !== 1,          // to ud af tre er kvartersavet, resten har «katedral»-årer
+        spacing: 9 + r() * 7,
+        slant: (r() - 0.5) * 0.06,
+        cx: 0.3 + r() * 0.4,
+        arch: 0.004 + r() * 0.004,
+        off: r() * 1000,
+        wave: noise1(100 + i),
+      });
+    }
+    return staves;
+  }
+  const image = (w, h) => ({ w, h, data: new Uint8ClampedArray(w * h * 4) });
+  const put = (d, i4, base, shade, warm) => {
+    d[i4] = clamp(base[0] * shade * (1 + warm));
+    d[i4 + 1] = clamp(base[1] * shade);
+    d[i4 + 2] = clamp(base[2] * shade * (1 - warm));
+    d[i4 + 3] = 255;
+  };
+
+  // Tolv staver side om side med en tynd, mørk limfuge i kanten.
+  if (job.kind === 'stave') {
+    const W = 1536, Hh = 1024, sw = W / STAVES;
+    const out = image(W, Hh), d = out.data, staves = staveParams(job.wood);
+    for (let y = 0; y < Hh; y++) {
+      for (let x = 0; x < W; x++) {
+        const si = Math.floor(x / sw), s = staves[si];
+        const lx = x - si * sw;               // px inde i staven
         const edge = Math.min(lx, sw - 1 - lx);
-        if (edge < 1.6) shade *= 0.6;
-        shade *= s.tone;
-        const i4 = (y * W + x) * 4;
-        d[i4] = clamp(WENGE[0] * shade, 0, 255);
-        d[i4 + 1] = clamp(WENGE[1] * shade, 0, 255);
-        d[i4 + 2] = clamp(WENGE[2] * shade, 0, 255);
-        d[i4 + 3] = 255;
-        continue;
-      }
-      if (s.quarter) {
-        // lige, parallelle årer på langs, let bølgede
-        g = lx + s.slant * y + s.wave(y / 140 + s.off) * 3.5 + s.wave(lx / 9 + s.off * 3) * 2.2;
-      } else {
-        // fladsavet: buede årer, der spidser til opad
-        const dx = (u - s.cx) * sw;
-        g = (dx * dx) * s.arch * 9 + (Hh - y) * 0.11 + s.wave(y / 90 + s.off) * 2;
-      }
-      const ring = g / s.spacing + s.off;
-      const f = ring - Math.floor(ring);
-      // senved mørkere, skarp overgang ved årringsgrænsen
-      let shade = 1.04 - 0.24 * Math.pow(f, 1.8) - (f > 0.93 ? 0.12 : 0);
-      // porer i tidligveddet: korte mørke streger langs årerne
-      if (f < 0.22 && hash2(Math.floor(g * 1.3), Math.floor(y / 5) + si * 999) > 0.8) shade -= 0.14;
-      // marvstråler: korte lyse flager på tværs af årerne (kvartersavet eg)
-      if (s.quarter && hash2(Math.floor(lx / 11) + si * 77, Math.floor(y / 3)) > 0.992) shade += 0.12;
-      // fin fiberstøj
-      shade += (hash2(x, y) - 0.5) * 0.05;
-      // let mørkere mod kanterne og en tynd limfuge
-      const edge = Math.min(lx, sw - 1 - lx);
-      if (edge < 1.6) shade *= 0.45;
-      else if (edge < 6) shade *= 0.93 + edge * 0.012;
-      shade *= s.tone;
-      const i4 = (y * W + x) * 4;
-      d[i4] = clamp(OAK[0] * shade * (1 + s.warm), 0, 255);
-      d[i4 + 1] = clamp(OAK[1] * shade, 0, 255);
-      d[i4 + 2] = clamp(OAK[2] * shade * (1 - s.warm), 0, 255);
-      d[i4 + 3] = 255;
-    }
-  }
-  ctx.putImageData(img, 0, 0);
-  return { canvas: c, staves };
-}
-
-// Foden er drejet: langsgående årer rundt om. Sømløs vandret.
-function footTexture() {
-  const W = 1024, Hh = 512;
-  const c = canvas(W, Hh), ctx = c.getContext('2d');
-  const img = ctx.createImageData(W, Hh), d = img.data;
-  const wave = noise1(7);
-  for (let y = 0; y < Hh; y++) {
-    for (let x = 0; x < W; x++) {
-      const a = (x / W) * Math.PI * 2;
-      const g = Math.sin(a * 3) * 40 + x * 0.9 + wave(y / 60 + x / 300) * 6;
-      const ring = g / 13;
-      const f = ring - Math.floor(ring);
-      let shade = 1.02 - 0.15 * Math.pow(f, 2.2) - (f > 0.94 ? 0.08 : 0);
-      if (f < 0.2 && hash2(Math.floor(g * 1.2), Math.floor(y / 4)) > 0.82) shade -= 0.12;
-      shade += (hash2(x, y) - 0.5) * 0.05;
-      const i4 = (y * W + x) * 4;
-      d[i4] = clamp(OAK[0] * shade, 0, 255);
-      d[i4 + 1] = clamp(OAK[1] * shade, 0, 255);
-      d[i4 + 2] = clamp(OAK[2] * shade, 0, 255);
-      d[i4 + 3] = 255;
-    }
-  }
-  ctx.putImageData(img, 0, 0);
-  return c;
-}
-
-// Toppen: yderst stavenes endetræ i tolv felter, inderst en drejet skive.
-function topTexture(staves, angleOffset) {
-  const S = 768, c = canvas(S, S), ctx = c.getContext('2d');
-  const img = ctx.createImageData(S, S), d = img.data;
-  const inner = 0.74;
-  for (let y = 0; y < S; y++) {
-    for (let x = 0; x < S; x++) {
-      const px = (x / S) * 2 - 1, py = 1 - (y / S) * 2;
-      const rho = Math.hypot(px, py);
-      let a = Math.atan2(-py, px) - angleOffset;    // samme vinkelretning som stavene
-      a = ((a % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-      const sec = a / (Math.PI * 2 / STAVES);
-      const si = Math.floor(sec) % STAVES, fs = sec - Math.floor(sec);
-      let shade;
-      let base = OAK;
-      if (rho > inner) {
-        const s = staves[si];
-        base = s.base;
-        const ring = (rho * 60 + fs * 4) + s.off;
+        let g, shade;
+        if (s.wenge) {
+          // wenge: tætte, lige striber med lidt bølge; ingen marvstråler
+          g = lx * 1.9 + s.slant * y + s.wave(y / 160 + s.off) * 4;
+          const f = (g / 7 + s.off) % 1;
+          shade = f < 0.42 ? 1.18 + 0.18 * Math.sin(f * 7.4) : 0.72 - 0.12 * f;
+          if (hash2(Math.floor(g), Math.floor(y / 9) + si * 999) > 0.9) shade *= 0.6;   // lange porer
+          shade += (hash2(x, y) - 0.5) * 0.12;
+          if (edge < 1.6) shade *= 0.6;
+          put(d, (y * W + x) * 4, WENGE, shade * s.tone, 0);
+          continue;
+        }
+        if (s.quarter) {
+          // lige, parallelle årer på langs, let bølgede
+          g = lx + s.slant * y + s.wave(y / 140 + s.off) * 3.5 + s.wave(lx / 9 + s.off * 3) * 2.2;
+        } else {
+          // fladsavet: buede årer, der spidser til opad
+          const dx = (lx / sw - s.cx) * sw;
+          g = (dx * dx) * s.arch * 9 + (Hh - y) * 0.11 + s.wave(y / 90 + s.off) * 2;
+        }
+        const ring = g / s.spacing + s.off;
         const f = ring - Math.floor(ring);
-        shade = (0.86 - 0.12 * f) * s.tone * (s.wenge ? 1.2 : 1);
-        if (hash2(x, y) > 0.86) shade -= 0.1;          // endetræets porer
-        const edgePx = Math.min(fs, 1 - fs) * rho * S * Math.PI / STAVES;
-        if (edgePx < 1.3) shade *= 0.45;               // limfuge mellem stavene
-      } else {
-        // drejet skive med lige årer
-        const g = (px * 0.94 + py * 0.34) * 260;
-        const f = g / 7 - Math.floor(g / 7);
-        shade = 1.0 - 0.14 * Math.pow(f, 2.2);
-        if (hash2(Math.floor(g * 1.5), Math.floor(y / 4)) > 0.85 && f < 0.25) shade -= 0.12;
+        // senved mørkere, skarp overgang ved årringsgrænsen
+        shade = 1.04 - 0.24 * Math.pow(f, 1.8) - (f > 0.93 ? 0.12 : 0);
+        // porer i tidligveddet: korte mørke streger langs årerne
+        if (f < 0.22 && hash2(Math.floor(g * 1.3), Math.floor(y / 5) + si * 999) > 0.8) shade -= 0.14;
+        // marvstråler: korte lyse flager på tværs af årerne (kvartersavet eg)
+        if (s.quarter && hash2(Math.floor(lx / 11) + si * 77, Math.floor(y / 3)) > 0.992) shade += 0.12;
+        shade += (hash2(x, y) - 0.5) * 0.05;      // fin fiberstøj
+        // let mørkere mod kanterne og en tynd limfuge
+        if (edge < 1.6) shade *= 0.45;
+        else if (edge < 6) shade *= 0.93 + edge * 0.012;
+        put(d, (y * W + x) * 4, OAK, shade * s.tone, s.warm);
       }
-      if (Math.abs(rho - inner) < 0.006) shade *= 0.5;   // fugen rundt om skiven
-      shade += (hash2(x + 7, y) - 0.5) * 0.05;
-      const i4 = (y * S + x) * 4;
-      d[i4] = clamp(base[0] * shade, 0, 255);
-      d[i4 + 1] = clamp(base[1] * shade, 0, 255);
-      d[i4 + 2] = clamp(base[2] * shade, 0, 255);
-      d[i4 + 3] = 255;
     }
+    return out;
   }
-  ctx.putImageData(img, 0, 0);
-  return c;
-}
 
-// Bunden af foden: endetræ fra to sammenlimede emner (som på det rigtige
-// bæger). Årringe, porer i tidligveddet og lyse marvstråler på tværs.
-function bottomWood(S) {
-  const out = new Uint8ClampedArray(S * S * 4);
+  // Foden er drejet: langsgående årer rundt om. Sømløs vandret.
+  if (job.kind === 'foot') {
+    const W = 1024, Hh = 512, out = image(W, Hh), d = out.data, wave = noise1(7);
+    for (let y = 0; y < Hh; y++) {
+      for (let x = 0; x < W; x++) {
+        const a = (x / W) * Math.PI * 2;
+        const g = Math.sin(a * 3) * 40 + x * 0.9 + wave(y / 60 + x / 300) * 6;
+        const f = g / 13 - Math.floor(g / 13);
+        let shade = 1.02 - 0.15 * Math.pow(f, 2.2) - (f > 0.94 ? 0.08 : 0);
+        if (f < 0.2 && hash2(Math.floor(g * 1.2), Math.floor(y / 4)) > 0.82) shade -= 0.12;
+        shade += (hash2(x, y) - 0.5) * 0.05;
+        put(d, (y * W + x) * 4, OAK, shade, 0);
+      }
+    }
+    return out;
+  }
+
+  // Toppen: yderst stavenes endetræ i tolv felter, inderst en drejet skive.
+  if (job.kind === 'top') {
+    const S = 768, out = image(S, S), d = out.data, staves = staveParams(job.wood);
+    const inner = 0.74, tau = Math.PI * 2;
+    for (let y = 0; y < S; y++) {
+      for (let x = 0; x < S; x++) {
+        const px = (x / S) * 2 - 1, py = 1 - (y / S) * 2;
+        const rho = Math.hypot(px, py);
+        let a = Math.atan2(-py, px) - job.angleOffset;    // samme vinkelretning som stavene
+        a = ((a % tau) + tau) % tau;
+        const sec = a / (tau / STAVES);
+        const si = Math.floor(sec) % STAVES, fs = sec - Math.floor(sec);
+        let shade, base = OAK;
+        if (rho > inner) {
+          const s = staves[si];
+          base = s.base;
+          const ring = (rho * 60 + fs * 4) + s.off;
+          shade = (0.86 - 0.12 * (ring - Math.floor(ring))) * s.tone * (s.wenge ? 1.2 : 1);
+          if (hash2(x, y) > 0.86) shade -= 0.1;          // endetræets porer
+          const edgePx = Math.min(fs, 1 - fs) * rho * S * Math.PI / STAVES;
+          if (edgePx < 1.3) shade *= 0.45;               // limfuge mellem stavene
+        } else {
+          // drejet skive med lige årer
+          const g = (px * 0.94 + py * 0.34) * 260;
+          const f = g / 7 - Math.floor(g / 7);
+          shade = 1.0 - 0.14 * Math.pow(f, 2.2);
+          if (hash2(Math.floor(g * 1.5), Math.floor(y / 4)) > 0.85 && f < 0.25) shade -= 0.12;
+        }
+        if (Math.abs(rho - inner) < 0.006) shade *= 0.5;   // fugen rundt om skiven
+        shade += (hash2(x + 7, y) - 0.5) * 0.05;
+        put(d, (y * S + x) * 4, base, shade, 0);
+      }
+    }
+    return out;
+  }
+
+  // Bunden af foden: endetræ fra to sammenlimede emner (som på det rigtige
+  // bæger). Årringe, porer i tidligveddet og lyse marvstråler på tværs.
+  // Endetræ er lidt mørkere og rødere end langtræ.
+  const S = job.size, out = image(S, S), d = out.data, END = [156, 104, 62];
   const blocks = [
     { cx: S * 0.32, cy: -S * 1.35, sp: 19, wob: noise1(31), off: 0.3 },
     { cx: S * 0.66, cy: S * 2.25, sp: 23, wob: noise1(57), off: 0.7 },
@@ -233,8 +225,8 @@ function bottomWood(S) {
     for (let x = 0; x < S; x++) {
       const b = blocks[y < glue ? 0 : 1];
       const dx = x - b.cx, dy = y - b.cy;
-      const dist = Math.hypot(dx, dy), ang = Math.atan2(dy, dx);
-      const rr = dist + b.wob(ang * 40) * 9;
+      const ang = Math.atan2(dy, dx);
+      const rr = Math.hypot(dx, dy) + b.wob(ang * 40) * 9;
       const ring = rr / b.sp + b.off, f = ring - Math.floor(ring);
       let shade = 0.9 - 0.2 * Math.pow(f, 1.4) - (f > 0.95 ? 0.08 : 0);
       // porøs ring: mørke prikker i starten af hver årring
@@ -244,85 +236,169 @@ function bottomWood(S) {
       if (hash2(Math.floor(ray), 3) > 0.9 && ray - Math.floor(ray) < 0.4) shade += 0.1;
       shade += (hash2(x, y) - 0.5) * 0.06;
       if (Math.abs(y - glue) < 1.2) shade *= 0.55;      // limfuge mellem de to emner
-      const i4 = (y * S + x) * 4;
-      // endetræ er lidt mørkere og rødere end langtræ
-      out[i4] = clamp(156 * shade, 0, 255);
-      out[i4 + 1] = clamp(104 * shade, 0, 255);
-      out[i4 + 2] = clamp(62 * shade, 0, 255);
-      out[i4 + 3] = 255;
+      put(d, (y * S + x) * 4, END, shade, 0);
     }
   }
   return out;
 }
 
-/* ---------- gravering ---------- */
-
-function fitFont(ctx, text, family, maxW, start, min) {
-  let s = start;
-  ctx.font = family.replace('{s}', s);
-  while (s > min && ctx.measureText(text).width > maxW) {
-    s -= 2;
-    ctx.font = family.replace('{s}', s);
-  }
-  return s;
+// Regner alle fire teksturer ud samtidig i hver sin Web Worker. Kan workers
+// ikke bruges (fx på grund af sidens sikkerhedsregler), regnes de ud her på
+// siden, med en pause imellem, så siden kan nå at tegne.
+function textures(wood) {
+  const jobs = {
+    stave: { kind: 'stave', wood },
+    foot: { kind: 'foot' },
+    top: { kind: 'top', wood, angleOffset: Math.PI / STAVES },
+    bottom: { kind: 'bottom', size: TEX },
+  };
+  let url = null;
+  try {
+    const src = `const generate=${generate};onmessage=(e)=>{const r=generate(e.data);postMessage(r,[r.data.buffer]);};`;
+    url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+  } catch (e) { /* ingen Blob-adresser: brug siden selv */ }
+  const onPage = (job) => new Promise((resolve) => setTimeout(() => resolve(generate(job)), 0));
+  const inWorker = (job) => new Promise((resolve, reject) => {
+    const w = new Worker(url);
+    w.onmessage = (e) => { w.terminate(); resolve(e.data); };
+    w.onerror = (e) => { w.terminate(); reject(e); };
+    w.postMessage(job);
+  });
+  const keys = Object.keys(jobs);
+  return Promise.all(keys.map((k) => (url ? inWorker(jobs[k]).catch(() => onPage(jobs[k])) : onPage(jobs[k]))))
+    .then((list) => {
+      if (url) URL.revokeObjectURL(url);
+      return Object.fromEntries(keys.map((k, i) => [k, list[i]]));
+    });
 }
 
-// Tegner masken (hvid = brændt) for kundens tekst og Frede Høsts eget mærke.
-function drawMask(ctx, S, state) {
-  ctx.clearRect(0, 0, S, S);
-  ctx.fillStyle = '#000';
-  ctx.fillRect(0, 0, S, S);
-  ctx.fillStyle = '#fff';
+function toCanvas(px) {
+  const c = canvas(px.w, px.h);
+  c.getContext('2d').putImageData(new ImageData(px.data, px.w, px.h), 0, 0);
+  return c;
+}
+
+/* ---------- gravering ---------- */
+
+// Frede Høsts mærke, som på det rigtige bæger, under midten.
+function drawMark(ctx, S) {
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
-
-  // Frede Høsts mærke, som på det rigtige bæger, under midten
-  const mark = FONTS.sans.replace('500', '600');
-  ctx.font = mark.replace('{s}', Math.round(S * 0.046));
+  ctx.font = MARK_FONT.replace('{s}', Math.round(S * 0.046));
   ctx.fillText('FREDE HØST', S / 2, S * 0.735);
-  ctx.font = mark.replace('{s}', Math.round(S * 0.026));
+  ctx.font = MARK_FONT.replace('{s}', Math.round(S * 0.026));
   ctx.fillText('MADE IN DENMARK', S / 2, S * 0.775);
   ctx.fillText('COPYRIGHT', S / 2, S * 0.808);
+}
 
-  // Kundens tekst: centreret over mærket, krympes så den holder sig inden for bunden
-  const fam = FONTS[state.font] || FONTS.serif;
+// Kundens tekst: centreret over mærket, krympes så den holder sig inden for bunden.
+function drawText(ctx, S, state) {
   const lines = [state.line1, state.line2].filter(Boolean);
   if (!lines.length) return;
-  const maxW = S * 0.66;
-  const start = Math.round(S * (lines.length === 1 ? 0.105 : 0.088));
-  const size = Math.min(...lines.map((l) => fitFont(ctx, l, fam, maxW, start, Math.round(S * 0.04))));
-  ctx.font = fam.replace('{s}', size);
+  const fam = FONTS[state.font] || FONTS.serif;
+  const maxW = S * 0.66, min = Math.round(S * 0.04);
+  let size = Math.round(S * (lines.length === 1 ? 0.105 : 0.088));
+  const fits = () => {
+    ctx.font = fam.replace('{s}', size);
+    return lines.every((l) => ctx.measureText(l).width <= maxW);
+  };
+  while (!fits() && size > min) size -= 2;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
   const lh = size * 1.18;
-  const mid = S * 0.45;
-  const y0 = mid - ((lines.length - 1) * lh) / 2 + size * 0.34;
+  const y0 = S * 0.45 - ((lines.length - 1) * lh) / 2 + size * 0.34;
   lines.forEach((l, i) => ctx.fillText(l, S / 2, y0 + i * lh));
 }
 
-// Lægger brændingen oven på træet. Det brændte bliver mørkt, men træets
-// lyse og mørke partier skinner stadig svagt igennem. En svag, varm rand
-// omkring bogstaverne (varmepåvirket træ). Ingen fordybning.
-function composite(wood, mask, halo, out, S) {
-  for (let i = 0, n = S * S; i < n; i++) {
-    const i4 = i * 4;
-    const m = mask[i4] / 255;
-    const h = halo[i4] / 255;
-    let r = wood[i4], g = wood[i4 + 1], b = wood[i4 + 2];
-    // varmepåvirket rand: let karamelliseret
-    const k = 1 - 0.22 * h;
-    r *= k; g *= k * 0.96; b *= k * 0.9;
-    if (m > 0) {
-      // laserens rasterlinjer giver en meget svag vandret struktur
-      const y = (i / S) | 0;
-      const scan = 0.94 + 0.06 * ((y & 1) ? 1 : 0.4);
-      const lum = (wood[i4] + wood[i4 + 1] + wood[i4 + 2]) / 3 / 140;   // ~1 for gennemsnitstræ
-      const bur = [46, 27, 16].map((c) => c * (0.7 + 0.55 * lum) * scan);
-      const t = m * 0.93;
-      r = r * (1 - t) + bur[0] * t;
-      g = g * (1 - t) + bur[1] * t;
-      b = b * (1 - t) + bur[2] * t;
+// Lægger brændingen oven på træet inden for ét felt. Det brændte bliver
+// mørkt, men træets lyse og mørke partier skinner stadig svagt igennem. En
+// svag, varm rand omkring bogstaverne (varmepåvirket træ). Ingen fordybning.
+function burn(out, wood, S, r, mask, halo) {
+  for (let y = 0; y < r.h; y++) {
+    // laserens rasterlinjer giver en meget svag vandret struktur
+    const scan = 0.94 + 0.06 * (((r.y + y) & 1) ? 1 : 0.4);
+    let i = y * r.w * 4, o = ((r.y + y) * S + r.x) * 4;
+    for (let x = 0; x < r.w; x++, i += 4, o += 4) {
+      const k = 1 - 0.22 * (halo[i] / 255);          // varmepåvirket rand: let karamelliseret
+      let R = wood[o] * k, G = wood[o + 1] * k * 0.96, B = wood[o + 2] * k * 0.9;
+      const m = mask[i];
+      if (m > 0) {
+        const f = (0.7 + 0.55 * (wood[o] + wood[o + 1] + wood[o + 2]) / 420) * scan;   // træet anes igennem
+        const t = (m / 255) * 0.93;
+        R += (46 * f - R) * t; G += (27 * f - G) * t; B += (16 * f - B) * t;
+      }
+      out[o] = R; out[o + 1] = G; out[o + 2] = B;
     }
-    out[i4] = r; out[i4 + 1] = g; out[i4 + 2] = b; out[i4 + 3] = 255;
   }
+}
+
+// Bundens overflade: træ med mærke og kundens tekst brændt ind, plus et
+// kort over ruhed (det brændte er mere mat end det olierede træ).
+function bottomSurface(px) {
+  const S = px.w, wood = px.data;
+  const face = canvas(S, S), fctx = face.getContext('2d');
+  const img = new ImageData(new Uint8ClampedArray(wood), S, S);
+  fctx.putImageData(img, 0, 0);
+  const rough = canvas(256, 256), rctx = rough.getContext('2d');
+  rctx.fillStyle = ROUGH;
+  rctx.fillRect(0, 0, 256, 256);
+
+  const layer = (box) => {
+    const r = { x: Math.floor(box.x * S), y: Math.floor(box.y * S), w: Math.ceil(box.w * S), h: Math.ceil(box.h * S) };
+    const ctx = () => canvas(r.w, r.h).getContext('2d', { willReadFrequently: true });
+    return { r, mask: ctx(), halo: ctx() };
+  };
+  const text = layer(TEXT_BOX), mark = layer(MARK_BOX);
+
+  function apply(L, draw) {
+    const r = L.r;
+    // Masken er teksten selv; randen er teksten med en blød skygge omkring.
+    // (shadowBlur virker i alle browsere; ctx.filter gør ikke i Safari.)
+    for (const [c, glow] of [[L.mask, 0], [L.halo, S * 0.01]]) {
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.shadowColor = 'transparent';
+      c.shadowBlur = 0;
+      c.fillStyle = '#000';
+      c.fillRect(0, 0, r.w, r.h);
+      c.translate(-r.x, -r.y);
+      c.fillStyle = '#fff';
+      if (glow) { c.shadowColor = '#fff'; c.shadowBlur = glow; }
+      draw(c);
+    }
+    burn(img.data, wood, S, r, L.mask.getImageData(0, 0, r.w, r.h).data, L.halo.getImageData(0, 0, r.w, r.h).data);
+    fctx.putImageData(img, 0, 0, r.x, r.y, r.w, r.h);
+    const k = 256 / S;
+    rctx.globalCompositeOperation = 'source-over';
+    rctx.globalAlpha = 1;
+    rctx.fillRect(r.x * k, r.y * k, r.w * k, r.h * k);
+    rctx.globalCompositeOperation = 'lighter';
+    rctx.globalAlpha = 0.35;
+    rctx.drawImage(L.mask.canvas, r.x * k, r.y * k, r.w * k, r.h * k);
+  }
+
+  let marked = false;
+  return {
+    face, rough,
+    draw(state) {
+      if (!marked) { apply(mark, (c) => drawMark(c, S)); marked = true; }
+      apply(text, (c) => drawText(c, S, state));
+    },
+  };
+}
+
+// Venter på, at skrifterne er hentet, og tegner så. Flere ændringer inden
+// for samme billede slås sammen til én tegning.
+function textUpdater(surface, after) {
+  let current = { line1: '', line2: '', font: 'serif' }, pending = false;
+  return (state) => {
+    current = state;
+    if (pending) return;
+    pending = true;
+    const fam = (FONTS[state.font] || FONTS.serif).replace('{s}', 80);
+    Promise.all([document.fonts.load(fam, state.line1 + state.line2 || 'A'), document.fonts.load(MARK_FONT.replace('{s}', 40))])
+      .catch(() => {})
+      .then(() => requestAnimationFrame(() => { pending = false; surface.draw(current); after(); }));
+  };
 }
 
 /* ---------- geometri ---------- */
@@ -413,13 +489,16 @@ function studioEnvironment(THREE, renderer) {
 /* ---------- montering ---------- */
 
 export async function mount(canvasEl, threeSrc, opts = {}) {
-  const THREE = await import(threeSrc);
+  const pixels = textures(opts.wood || 'eg');   // regnes ud i baggrunden, mens three.js hentes
 
-  let renderer;
+  // Kan three.js ikke hentes, eller findes WebGL ikke, vises bunden fladt.
+  let THREE, renderer;
   try {
+    THREE = await import(threeSrc);
     renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true, powerPreference: 'high-performance' });
   } catch (e) {
-    return fallback2D(canvasEl);
+    console.warn('3D ikke tilgængeligt, viser bunden fladt', e);
+    return flatView(canvasEl, await pixels);
   }
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -436,6 +515,7 @@ export async function mount(canvasEl, threeSrc, opts = {}) {
   rim.position.set(8, 4, -10);
   scene.add(rim);
 
+  const px = await pixels;
   const aniso = renderer.capabilities.getMaxAnisotropy();
   const tex = (src, wrap) => {
     const t = new THREE.CanvasTexture(src);
@@ -444,32 +524,23 @@ export async function mount(canvasEl, threeSrc, opts = {}) {
     if (wrap) t.wrapS = THREE.RepeatWrapping;
     return t;
   };
-  const oiled = (map, extra = {}) => new THREE.MeshPhysicalMaterial({
+  // Olieret træ: en tynd, mat hinde over træet. Ingen «sheen»: den lagde et
+  // lyst slør over de mørke wenge-stave, når bægeret blev set skråt.
+  const oiled = (map) => new THREE.MeshPhysicalMaterial({
     map, bumpMap: map, bumpScale: 0.35,
-    roughness: 0.5, clearcoat: 0.22, clearcoatRoughness: 0.55,
-    sheen: 0.25, sheenRoughness: 0.6, sheenColor: new THREE.Color(0.9, 0.75, 0.55),
-    ...extra,
+    roughness: 0.55, clearcoat: 0.16, clearcoatRoughness: 0.6,
   });
 
   const angleOffset = Math.PI / STAVES;   // en flade lige mod beskueren
-  const { canvas: staveCanvas, staves } = staveTexture(opts.wood || 'eg');
   const model = new THREE.Group();
-  model.add(new THREE.Mesh(staveGeometry(THREE, angleOffset), oiled(tex(staveCanvas))));
-  model.add(new THREE.Mesh(topGeometry(THREE, angleOffset), oiled(tex(topTexture(staves, angleOffset)))));
-  model.add(new THREE.Mesh(footGeometry(THREE), oiled(tex(footTexture(), true))));
+  model.add(new THREE.Mesh(staveGeometry(THREE, angleOffset), oiled(tex(toCanvas(px.stave)))));
+  model.add(new THREE.Mesh(topGeometry(THREE, angleOffset), oiled(tex(toCanvas(px.top)))));
+  model.add(new THREE.Mesh(footGeometry(THREE), oiled(tex(toCanvas(px.foot), true))));
 
   // Bunden med gravering
-  const S = 1024;
-  const wood = bottomWood(S);
-  const bottomCanvas = canvas(S, S);
-  const bctx = bottomCanvas.getContext('2d');
-  const bottomImg = bctx.createImageData(S, S);
-  const maskCanvas = canvas(S, S), mctx = maskCanvas.getContext('2d', { willReadFrequently: true });
-  const haloCanvas = canvas(S, S), hctx = haloCanvas.getContext('2d', { willReadFrequently: true });
-  // ruhed: det brændte er mere mat end det olierede træ
-  const roughCanvas = canvas(256, 256), rctx = roughCanvas.getContext('2d');
-  const bottomTex = tex(bottomCanvas);
-  const roughTex = new THREE.CanvasTexture(roughCanvas);
+  const surface = bottomSurface(px.bottom);
+  const bottomTex = tex(surface.face);
+  const roughTex = new THREE.CanvasTexture(surface.rough);
   const bottom = new THREE.Mesh(
     new THREE.CircleGeometry(FOOT_R, 96),
     new THREE.MeshPhysicalMaterial({ map: bottomTex, roughnessMap: roughTex, roughness: 1, clearcoat: 0.12, clearcoatRoughness: 0.6 }),
@@ -485,42 +556,37 @@ export async function mount(canvasEl, threeSrc, opts = {}) {
   scene.add(pivot);
 
   const camera = new THREE.PerspectiveCamera(28, 1, 1, 200);
+  const calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   let pitch = PITCH0, yaw = YAW0, vx = 0, vy = 0;
-  let target = null, dirty = true, running = true, raf = 0;
+  let target = null, drag = null, running = true, lost = false, raf = 0;
 
-  function drawBottom(state) {
-    drawMask(mctx, S, state);
-    hctx.filter = 'blur(5px)';
-    hctx.clearRect(0, 0, S, S);
-    hctx.drawImage(maskCanvas, 0, 0);
-    hctx.filter = 'none';
-    const m = mctx.getImageData(0, 0, S, S).data;
-    const h = hctx.getImageData(0, 0, S, S).data;
-    composite(wood, m, h, bottomImg.data, S);
-    bctx.putImageData(bottomImg, 0, 0);
-    rctx.fillStyle = 'rgb(0,140,0)';                   // grøn kanal = ruhed (≈ 0,55)
-    rctx.fillRect(0, 0, 256, 256);
-    rctx.globalCompositeOperation = 'lighter';
-    rctx.globalAlpha = 0.35;
-    rctx.drawImage(maskCanvas, 0, 0, 256, 256);
-    rctx.globalAlpha = 1;
-    rctx.globalCompositeOperation = 'source-over';
-    bottomTex.needsUpdate = true;
-    roughTex.needsUpdate = true;
-    dirty = true;
+  // Der renderes kun, når noget har ændret sig. invalidate() beder om ét billede.
+  function invalidate() {
+    if (!raf && running && !lost) raf = requestAnimationFrame(frame);
   }
-
-  let current = { line1: '', line2: '', font: 'serif' };
-  let pending = false;
-  function setText(state) {
-    current = state;
-    if (pending) return;
-    pending = true;
-    const fam = (FONTS[state.font] || FONTS.serif).replace('{s}', 80);
-    Promise.all([document.fonts.load(fam, state.line1 + state.line2 || 'A'), document.fonts.load(FONTS.sans.replace('500', '600').replace('{s}', 40))])
-      .catch(() => {})
-      .then(() => requestAnimationFrame(() => { pending = false; drawBottom(current); }));
+  function turn(dx, dy) {
+    yaw += dx;
+    pitch = clamp(pitch + dy, PITCH_MIN, PITCH_MAX);
+  }
+  function frame() {
+    raf = 0;
+    let moving = false;
+    if (!drag && (Math.abs(vx) > 1e-4 || Math.abs(vy) > 1e-4)) {
+      turn(vx, vy);
+      vx *= 0.92; vy *= 0.92;
+      moving = true;
+    }
+    if (target) {
+      yaw += (target.yaw - yaw) * 0.12;
+      pitch += (target.pitch - pitch) * 0.12;
+      if (Math.abs(target.yaw - yaw) < 1e-3 && Math.abs(target.pitch - pitch) < 1e-3) target = null;
+      moving = true;
+    }
+    pivot.rotation.x = pitch;
+    pivot.rotation.y = yaw;
+    renderer.render(scene, camera);
+    if (moving) invalidate();
   }
 
   function resize() {
@@ -533,13 +599,20 @@ export async function mount(canvasEl, threeSrc, opts = {}) {
     camera.position.set(0, 0, camera.aspect < 1 ? fit / Math.max(camera.aspect, 0.55) : fit);
     camera.lookAt(0, 0, 0);
     camera.updateProjectionMatrix();
-    dirty = true;
+    invalidate();
   }
-  const ro = new ResizeObserver(resize);
-  ro.observe(canvasEl);
+  new ResizeObserver(resize).observe(canvasEl);
+
+  function reset() {
+    // drej den korteste vej tilbage til bunden
+    const tau = Math.PI * 2;
+    yaw = ((yaw - YAW0 + Math.PI) % tau + tau) % tau - Math.PI + YAW0;
+    vx = vy = 0;
+    if (calm) { yaw = YAW0; pitch = PITCH0; } else target = { yaw: YAW0, pitch: PITCH0 };
+    invalidate();
+  }
 
   // træk for at dreje
-  let drag = null;
   canvasEl.style.touchAction = 'none';
   canvasEl.addEventListener('pointerdown', (e) => {
     drag = { x: e.clientX, y: e.clientY, id: e.pointerId };
@@ -548,78 +621,76 @@ export async function mount(canvasEl, threeSrc, opts = {}) {
   });
   canvasEl.addEventListener('pointermove', (e) => {
     if (!drag || e.pointerId !== drag.id) return;
-    const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    vx = (e.clientX - drag.x) * 0.009; vy = (e.clientY - drag.y) * 0.009;
     drag.x = e.clientX; drag.y = e.clientY;
-    vx = dx * 0.009; vy = dy * 0.009;
-    yaw += vx; pitch = clamp(pitch + vy, -1.75, 0.35);
-    dirty = true;
+    turn(vx, vy);
+    invalidate();
   });
-  const end = () => { drag = null; };
+  const end = () => {
+    drag = null;
+    if (calm) vx = vy = 0;
+    invalidate();   // lad bægeret glide lidt videre
+  };
   canvasEl.addEventListener('pointerup', end);
   canvasEl.addEventListener('pointercancel', end);
 
-  function frame() {
-    raf = 0;
-    if (!running) return;
-    if (!drag && (Math.abs(vx) > 1e-4 || Math.abs(vy) > 1e-4)) {
-      yaw += vx; pitch = clamp(pitch + vy, -1.75, 0.35);
-      vx *= 0.92; vy *= 0.92; dirty = true;
-    }
-    if (target) {
-      yaw += (target.yaw - yaw) * 0.12;
-      pitch += (target.pitch - pitch) * 0.12;
-      if (Math.abs(target.yaw - yaw) < 1e-3 && Math.abs(target.pitch - pitch) < 1e-3) target = null;
-      dirty = true;
-    }
-    if (dirty) {
-      pivot.rotation.x = pitch;
-      pivot.rotation.y = yaw;
-      renderer.render(scene, camera);
-      dirty = false;
-    }
-    raf = requestAnimationFrame(frame);
-  }
+  // piletaster drejer også, så visningen kan bruges uden mus
+  canvasEl.tabIndex = 0;
+  canvasEl.addEventListener('keydown', (e) => {
+    const step = { ArrowLeft: [-0.15, 0], ArrowRight: [0.15, 0], ArrowUp: [0, -0.12], ArrowDown: [0, 0.12] }[e.key];
+    if (!step && e.key !== 'Home') return;
+    e.preventDefault();
+    target = null; vx = vy = 0;
+    if (step) { turn(step[0], step[1]); invalidate(); } else reset();
+  });
+
+  // Mister browseren grafikkonteksten (fx når telefonen sparer hukommelse), bygges lyset op igen.
+  canvasEl.addEventListener('webglcontextlost', (e) => { e.preventDefault(); lost = true; });
+  canvasEl.addEventListener('webglcontextrestored', () => {
+    lost = false;
+    scene.environment = studioEnvironment(THREE, renderer);
+    invalidate();
+  });
+
+  const setText = textUpdater(surface, () => {
+    bottomTex.needsUpdate = true;
+    roughTex.needsUpdate = true;
+    invalidate();
+  });
 
   resize();
-  drawBottom(current);
-  raf = requestAnimationFrame(frame);
+  // Lad grafikkortet bygge sine programmer i baggrunden, hvor det kan, så
+  // siden ikke står stille imens.
+  try { await renderer.compileAsync(scene, camera); } catch (e) { /* bygges ved første billede i stedet */ }
+  setText({ line1: '', line2: '', font: 'serif' });
+  invalidate();
 
   return {
     setText,
-    reset() {
-      // drej den korteste vej tilbage til bunden
-      const tau = Math.PI * 2;
-      yaw = ((yaw - YAW0 + Math.PI) % tau + tau) % tau - Math.PI + YAW0;
-      target = { yaw: YAW0, pitch: PITCH0 }; vx = vy = 0;
-    },
+    reset,
     pause() { running = false; if (raf) cancelAnimationFrame(raf); raf = 0; },
-    resume() { if (!running) { running = true; dirty = true; raf = requestAnimationFrame(frame); } },
-    // til test: aktuel visning
-    get debug() { return { yaw, pitch, renderer }; },
+    resume() { running = true; invalidate(); },
   };
 }
 
-// Hvis WebGL ikke er tilgængeligt: vis bunden som et fladt billede.
-function fallback2D(canvasEl) {
-  const S = 768;
-  const wood = bottomWood(S);
-  const c2 = document.createElement('canvas');
-  c2.width = c2.height = S;
-  c2.className = canvasEl.className + ' engraver__flat';
-  canvasEl.replaceWith(c2);
-  const ctx = c2.getContext('2d');
-  const m = canvas(S, S), mctx = m.getContext('2d', { willReadFrequently: true });
-  const h = canvas(S, S), hctx = h.getContext('2d', { willReadFrequently: true });
-  const img = ctx.createImageData(S, S);
-  function setText(state) {
-    drawMask(mctx, S, state);
-    hctx.filter = 'blur(4px)'; hctx.clearRect(0, 0, S, S); hctx.drawImage(m, 0, 0); hctx.filter = 'none';
-    composite(wood, mctx.getImageData(0, 0, S, S).data, hctx.getImageData(0, 0, S, S).data, img.data, S);
-    ctx.putImageData(img, 0, 0);
-    ctx.globalCompositeOperation = 'destination-in';
-    ctx.beginPath(); ctx.arc(S / 2, S / 2, S / 2, 0, Math.PI * 2); ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
-  }
+// Uden 3D: vis bunden som et fladt, rundt billede med samme gravering.
+function flatView(canvasEl, px) {
+  const S = px.bottom.w, surface = bottomSurface(px.bottom);
+  const flat = canvas(S, S);
+  flat.className = canvasEl.className + ' engraver__flat';
+  flat.setAttribute('role', 'img');
+  flat.setAttribute('aria-label', 'Bunden af bægeret med graveringen');
+  canvasEl.replaceWith(flat);
+  const ctx = flat.getContext('2d');
+  const setText = textUpdater(surface, () => {
+    ctx.clearRect(0, 0, S, S);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(S / 2, S / 2, S / 2, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.drawImage(surface.face, 0, 0);
+    ctx.restore();
+  });
   setText({ line1: '', line2: '', font: 'serif' });
   return { setText, reset() {}, pause() {}, resume() {} };
 }
