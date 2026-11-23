@@ -3,6 +3,7 @@
 // Valgfrit:
 //   THREE_FILE=sti/til/three.module.min.js   hvis jsDelivr er blokeret i testmiljøet (samme fil, r160)
 //   FH_THEMES=id,id                          andre temaer end de to demo-temaer
+//   FH_DEVICES=computer eller mobil          kun den ene skærmstørrelse
 // Tiderne er vejledende (processoren er gjort 4 gange langsommere, og der er
 // intet rigtigt grafikkort). De øvrige tjek skal alle være «ok»; ellers
 // afslutter scriptet med fejlkode.
@@ -15,7 +16,12 @@ const BASE = 'https://frede-host-demo.myshopify.com';
 const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.min.js';
 const THEMES = (process.env.FH_THEMES || '210973819212,210941542732').split(',');
 // Mobil testes i enkelt opløsning: uden grafikkort tager hvert billede ellers flere sekunder.
-const DEVICES = [['computer', { viewport: { width: 1440, height: 900 } }], ['mobil', { ...devices['iPhone 13'], deviceScaleFactor: 1 }]];
+// Mobilen er en skærm på iPhone-størrelse med berøring, men uden iPhones browserkennung:
+// Shopify sender iPhone-browsere en tur omkring shop.app («Log ind med Shop»), og den
+// adresse kan et lukket testmiljø ikke nå. En rigtig telefon mærker ikke omvejen.
+const phone = devices['iPhone 13'];
+const DEVICES = [['computer', { viewport: { width: 1440, height: 900 } }], ['mobil', { viewport: phone.viewport, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }]]
+  .filter(([name]) => !process.env.FH_DEVICES || process.env.FH_DEVICES.split(',').includes(name));
 const three = process.env.THREE_FILE ? fs.readFileSync(process.env.THREE_FILE) : null;
 const md5 = (buf) => crypto.createHash('md5').update(buf).digest('hex');
 
@@ -50,15 +56,22 @@ async function open(opts, theme, { blockThree = false } = {}) {
   const errors = [];
   page.on('pageerror', (e) => { if (page.url().includes('/products/')) errors.push(e.message.slice(0, 140)); });
   for (let attempt = 1; ; attempt++) {
-    await page.goto(BASE + '/password', { waitUntil: 'domcontentloaded' });
-    if (await page.locator('input[type=password]').count()) {
-      await page.fill('input[type=password]', process.env.FH_PASSWORD);
-      await Promise.all([page.waitForNavigation().catch(() => {}), page.press('input[type=password]', 'Enter')]);
+    // Butikken svarer af og til med en anden side lige efter mange forespørgsler,
+    // og forbindelsen kan falde ud et øjeblik: prøv op til tre gange.
+    let problem = '';
+    try {
+      await page.goto(BASE + '/password', { waitUntil: 'domcontentloaded' });
+      if (await page.locator('input[type=password]').count()) {
+        await page.fill('input[type=password]', process.env.FH_PASSWORD);
+        await Promise.all([page.waitForNavigation().catch(() => {}), page.press('input[type=password]', 'Enter')]);
+      }
+      await page.goto(`${BASE}/products/tove?preview_theme_id=${theme}`, { waitUntil: 'networkidle' });
+      if (await page.locator('[data-engraver]').count()) break;
+      problem = `${page.url()} – «${await page.title()}»`;
+    } catch (e) {
+      problem = e.message.split('\n')[0];
     }
-    await page.goto(`${BASE}/products/tove?preview_theme_id=${theme}`, { waitUntil: 'networkidle' });
-    if (await page.locator('[data-engraver]').count()) break;
-    // butikken svarer af og til med en anden side lige efter mange forespørgsler: prøv én gang til
-    if (attempt === 2) throw new Error(`Produktsiden blev ikke vist (${page.url()} – «${await page.title()}»)`);
+    if (attempt === 3) throw new Error(`Produktsiden blev ikke vist (${problem})`);
     await page.waitForTimeout(4000);
   }
   return { ctx, page, errors };

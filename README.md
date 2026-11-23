@@ -106,7 +106,18 @@ FH_PASSWORD=… node scripts/test-engraver.mjs
 ```
 
 Uden grafikkort tager testen 4–5 minutter pr. tema. Kør ét tema ad gangen med
-`FH_THEMES=210973819212` eller `FH_THEMES=210941542732`.
+`FH_THEMES=210973819212` eller `FH_THEMES=210941542732`, og eventuelt kun den
+ene skærmstørrelse med `FH_DEVICES=computer` eller `FH_DEVICES=mobil`.
+
+Mobilen i testen er en skærm på iPhone-størrelse med berøring, men uden iPhones
+browserkennung. Shopify sender iPhone-browsere en tur omkring `shop.app`
+(«Log ind med Shop»), og den adresse kan et lukket testmiljø ikke nå. En
+rigtig telefon mærker ikke omvejen.
+
+Filer lægges i de upublicerede temaer med `themeFilesUpsert`. Så længe repoet
+er offentligt, kan Shopify hente filen direkte fra GitHub (`type: URL` med
+adressen på rå-filen i et bestemt commit). Opgaven kører i baggrunden, så tjek
+bagefter, at `checksumMd5` i temaet er den samme som `md5sum` af filen her.
 
 Kodeordet står ikke i repoet.
 
