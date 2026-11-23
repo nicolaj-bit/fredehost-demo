@@ -18,7 +18,8 @@ const THEMES = (process.env.FH_THEMES || '210973819212,210941542732').split(',')
 // Mobil testes i enkelt opløsning: uden grafikkort tager hvert billede ellers flere sekunder.
 // Mobilen er en skærm på iPhone-størrelse med berøring, men uden iPhones browserkennung:
 // Shopify sender iPhone-browsere en tur omkring shop.app («Log ind med Shop»), og den
-// adresse kan et lukket testmiljø ikke nå. En rigtig telefon mærker ikke omvejen.
+// adresse kan et lukket testmiljø ikke nå. På en rigtig telefon skal shop.app sende
+// browseren tilbage til butikken igen; det kan ikke prøves herfra.
 const phone = devices['iPhone 13'];
 const DEVICES = [['computer', { viewport: { width: 1440, height: 900 } }], ['mobil', { viewport: phone.viewport, isMobile: true, hasTouch: true, deviceScaleFactor: 1 }]]
   .filter(([name]) => !process.env.FH_DEVICES || process.env.FH_DEVICES.split(',').includes(name));

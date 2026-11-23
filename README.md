@@ -111,8 +111,9 @@ ene skærmstørrelse med `FH_DEVICES=computer` eller `FH_DEVICES=mobil`.
 
 Mobilen i testen er en skærm på iPhone-størrelse med berøring, men uden iPhones
 browserkennung. Shopify sender iPhone-browsere en tur omkring `shop.app`
-(«Log ind med Shop»), og den adresse kan et lukket testmiljø ikke nå. En
-rigtig telefon mærker ikke omvejen.
+(«Log ind med Shop»), og den adresse kan et lukket testmiljø ikke nå. På en
+rigtig telefon skal shop.app sende browseren tilbage til butikken igen; det
+kan ikke prøves herfra, så tjek demoen på en iPhone, før den vises frem.
 
 Filer lægges i de upublicerede temaer med `themeFilesUpsert`. Så længe repoet
 er offentligt, kan Shopify hente filen direkte fra GitHub (`type: URL` med
