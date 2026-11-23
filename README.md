@@ -56,13 +56,21 @@ et lille `type="module" async`-script, der ikke venter på stylesheets.
 Modellen: 15,5 cm høj, 9 cm i diameter. Bægeret er drejet rundt og har ingen
 kanter: de tolv stave ses som striber i træet (tydeligst på TOVE, hvor wenge og
 eg skifter). Omridset med den slanke fod er målt på Frede Høsts egne
-studiefotos. Olieret eg med årer på langs af hver stav; bunden er endetræ med
-årringe. Graveringen er brændt, ikke præget: mørk farve og
+studiefotos. Graveringen er brændt, ikke præget: mørk farve og
 mere mat overflade, men ingen fordybning, og træets struktur anes igennem.
 
-Træets teksturer regnes ud i Web Workers, og ved tastetryk tegnes kun
-tekstfeltet i bunden om, så siden ikke fryser. Kan three.js ikke hentes, eller
-findes WebGL ikke, vises bunden fladt med samme gravering.
+Træet regnes ud som massivt træ: hvert bræt har årringe omkring en marv, porer
+langs årerne og marvstråler. Hver flade viser det snit, den skærer gennem
+træet, så stavene får skrå og flammede årer, den drejede fod får årer, der
+følger formen, og bunden er endetræ af de to sammenlimede klodser. Farverne og
+lyset (en blød lampe skråt forfra til højre, mørkere til venstre) er målt på
+Frede Høsts studiefoto af TOVE og afstemt, så 3D-visningen lander inden for få
+procent af fotoet. Materialet er mat, olieret træ uden blank lak.
+
+Teksturerne regnes ud i Web Workers (et lille hold, der deler opgaverne), og
+ved tastetryk tegnes kun tekstfeltet i bunden om, så siden ikke fryser. På små
+skærme regnes der færre pixels. Kan three.js ikke hentes, eller findes WebGL
+ikke, vises bunden fladt med samme gravering.
 
 ## Lokalt
 

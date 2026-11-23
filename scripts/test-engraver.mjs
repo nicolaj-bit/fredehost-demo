@@ -91,7 +91,7 @@ for (const theme of THEMES) {
     const keyTasks = await page.evaluate(() => window.__lt.splice(0));
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
     console.log(`  tid  åbn → klar: ${openMs} ms · længste frysning ved åbning: ${Math.max(0, ...openTasks)} ms · ved tastetryk: ${Math.max(0, ...keyTasks)} ms`);
-    check('træet regnes ud i 4 Web Workers uden fejl', workers.made === 4 && workers.errors === 0, JSON.stringify(workers));
+    check('træet regnes ud i Web Workers uden fejl', workers.made >= 2 && workers.made <= 6 && workers.errors === 0, JSON.stringify(workers));
     check('3D vises (ikke nødvisning)', (await page.locator('.engraver__flat').count()) === 0);
     check('teksten står i ordreoversigten', (await page.textContent('[data-order=text]')) === '«Familien Høst»');
 
